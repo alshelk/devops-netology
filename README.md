@@ -16,3 +16,7 @@ Modifed
 	Все файлы override.tf и override.tf.json, а также файлы имена которых заканчиваются на  _override.tf _override.tf.json
 6. .terraformrc terraform.rc
         Все файлы terraform.rc и файлы с расширением .terraformrc
+
+
+new line homework 2.2.3
+
