@@ -42,7 +42,7 @@
 
 ### 2. Какому тегу соответствует коммит 85024d3?
 
-Опять таки, можно посмотреть через ***git show 85024d3***
+Опять-таки, можно посмотреть через ***git show 85024d3***
 
     commit 85024d3100126de36331c6982bfaac02cdab9e76 (tag: v0.12.23)
     Author: tf-release-bot <terraform@hashicorp.com>
@@ -88,7 +88,7 @@
 
 ### 3. Сколько родителей у коммита b8d720? Напишите их хеши.
 
-С помошью ***git show b8d720*** и ***git log -1 b8d720*** можно увидить сокращенные хеши родителей
+С помощью ***git show b8d720*** и ***git log -1 b8d720*** можно увидеть сокращенные хеши родителей
 
     commit b8d720f8340221f2146e4e4870bf2ee0bc48f2d5
     Merge: 56cd7859e0 9ea88f22fc
@@ -127,7 +127,7 @@ git log --pretty=oneline v0.12.23..v0.12.24
     $ git log -S"func providerSource(" --oneline 
     8c928e8358 main: Consult local directories as potential mirrors of providers
 
-посмотрим что функция была добавленна именно в этом коммите
+посмотрим что функция была добавлена именно в этом коммите
 
     $ git show  8c928e8358
     commit 8c928e83589d90a031f811fae52a81be7153e82f
@@ -178,7 +178,7 @@ git log --pretty=oneline v0.12.23..v0.12.24
 
 ### 7. Кто автор функции synchronizedWriters?
 
-ищим по истории кто менял функцию 
+ищем по истории кто менял функцию 
 
     $ git log -p -S"func synchronizedWriters"
     commit bdfea50cc85161dea41be0fe3381fd98731ff786
@@ -246,13 +246,13 @@ git log --pretty=oneline v0.12.23..v0.12.24
     +       return ret
     +}
 
-вывод показывает что функция была добавленна в коммите **5ac311e2a91e381e2f52234668b49ba670aa0fe5
+вывод показывает что функция была добавлена в коммите **5ac311e2a91e381e2f52234668b49ba670aa0fe5
     Author: Martin Atkins <mart@degeneration.co.uk>**
 
-что бы убедиться что сама функция была добавленна тем же человеком выполним команду
+что бы убедиться что сама функция была добавлена тем же человеком выполним команду
 
     $ git blame synchronized_writers.go 5ac311e2a91e381e2f52234668b49ba670aa0fe5| grep synchronizedWriters
     5ac311e2a91 (Martin Atkins 2017-05-03 16:25:41 -0700 13) // synchronizedWriters takes a set of writers and returns wrappers that ensure
     5ac311e2a91 (Martin Atkins 2017-05-03 16:25:41 -0700 15) func synchronizedWriters(targets ...io.Writer) []io.Writer {
 
-в итоге получаем что функция **synchronizedWriters** была добавленна **Martin Atkins 2017-05-03 16:25:41 -0700 15** в коммите **5ac311e2a91**
+в итоге получаем что функция **synchronizedWriters** добавил **Martin Atkins 2017-05-03 16:25:41 -0700 15** в коммите **5ac311e2a91**
