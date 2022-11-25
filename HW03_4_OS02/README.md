@@ -60,23 +60,17 @@
 
 ### 2. Ознакомьтесь с опциями node_exporter и выводом /metrics по-умолчанию. Приведите несколько опций, которые вы бы выбрали для базового мониторинга хоста по CPU, памяти, диску и сети.
 
-    CPU:
-    node_cpu_seconds_total{cpu="0",mode="idle"} 3069.83
-    node_cpu_seconds_total{cpu="0",mode="iowait"} 0.75
-node_cpu_seconds_total{cpu="0",mode="irq"} 0
-node_cpu_seconds_total{cpu="0",mode="nice"} 0.01
-node_cpu_seconds_total{cpu="0",mode="softirq"} 1.13
-node_cpu_seconds_total{cpu="0",mode="steal"} 0
-node_cpu_seconds_total{cpu="0",mode="system"} 27.64
-node_cpu_seconds_total{cpu="0",mode="user"} 19.96
-node_cpu_seconds_total{cpu="1",mode="idle"} 3056.41
-node_cpu_seconds_total{cpu="1",mode="iowait"} 0.62
-node_cpu_seconds_total{cpu="1",mode="irq"} 0
-node_cpu_seconds_total{cpu="1",mode="nice"} 0.07
-node_cpu_seconds_total{cpu="1",mode="softirq"} 2.24
-node_cpu_seconds_total{cpu="1",mode="steal"} 0
-node_cpu_seconds_total{cpu="1",mode="system"} 22.9
-node_cpu_seconds_total{cpu="1",mode="user"} 16.97
+    если я правильно понял задание то опции следующие:
+
+    ExecStart=/usr/local/bin/node_exporter \
+    --collector.disable-defaults \
+    --collector.cpu\
+    --collector.meminfo \
+    --collector.diskstats \
+    --collector.filesystem \
+    --collector.loadavg \
+    --collector.netstat \
+    --collector.netdev
 
 
 ### 3. Установите в свою виртуальную машину Netdata. Воспользуйтесь готовыми пакетами для установки (sudo apt install -y netdata).
@@ -89,10 +83,89 @@ config.vm.network "forwarded_port", guest: 19999, host: 19999
 
 ***После успешной перезагрузки в браузере на своем ПК (не в виртуальной машине) вы должны суметь зайти на localhost:19999. Ознакомьтесь с метриками, которые по умолчанию собираются Netdata и с комментариями, которые даны к этим метрикам.***
 
+![img.png](img.png)
+
 ### 4. Можно ли по выводу dmesg понять, осознает ли ОС, что загружена не на настоящем оборудовании, а на системе виртуализации?
+
+    да можно
+    $ dmesg | grep virt
+    [    0.004737] CPU MTRRs all blank - virtualized system.
+    [    0.120900] Booting paravirtualized kernel on KVM
+    [    3.068736] systemd[1]: Detected virtualization oracle.
+    $ dmesg  | grep VBox
+    [   75.023253] 11:42:44.605274 main     VBoxService 6.1.40 r154048 (verbosity: 0) linux.amd64 (Oct 11 2022 16:03:32) release log
+
 
 ### 5. Как настроен sysctl fs.nr_open на системе по-умолчанию? Определите, что означает этот параметр. Какой другой существующий лимит не позволит достичь такого числа (ulimit --help)?
 
+    $ sysctl fs.nr_open
+    fs.nr_open = 1048576
+
+    man proc
+    ...
+    /proc/sys/fs/nr_open (since Linux 2.6.25)
+        файл устанавливает ограничение на предел увеличения лимита ресурсов для RLIMIT_NOFILE.
+        Этот потолок применяеся для всех процессов. Значение по умолчанию 1048576.
+    ...
+
+    man getrlimit
+    ...
+    RLIMIT_NOFILE
+        указание на число файловых дискрипторов которое можер быть открыто процесом.
+    ...
+
+    таким образов fs.nr_open это число файловых дискрипторов, которое может быть открыто одним процессом
+    
+    максимальное число файловых дискрипторов для системы содержится в параметре:
+    $ sysctl fs.file-max
+    fs.file-max = 9223372036854775807
+
+    $ ulimit --help | grep "open file"
+      -n	the maximum number of open file descriptors
+
+    мягкое ограничение для открытых файлов, которое может быть увеличено
+    $ ulimit -Sn
+    1024
+    Жесткое ограничение установленное в fs.nr_open
+    $ ulimit -Hn
+    1048576
+
+
+    
 ### 6. Запустите любой долгоживущий процесс (не ls, который отработает мгновенно, а, например, sleep 1h) в отдельном неймспейсе процессов; покажите, что ваш процесс работает под PID 1 через nsenter. Для простоты работайте в данном задании под root (sudo -i). Под обычным пользователем требуются дополнительные опции (--map-root-user) и т.д.
 
-### 7 Найдите информацию о том, что такое :(){ :|:& };:. Запустите эту команду в своей виртуальной машине Vagrant с Ubuntu 20.04 (это важно, поведение в других ОС не проверялось). Некоторое время все будет "плохо", после чего (минуты) – ОС должна стабилизироваться. Вызов dmesg расскажет, какой механизм помог автоматической стабилизации. Как настроен этот механизм по-умолчанию, и как изменить число процессов, которое можно создать в сессии?
+    # unshare -f --pid --mount-proc sleep 1h &
+    [1] 13606
+    root@vagrant:~# ps -fH
+    UID          PID    PPID  C STIME TTY          TIME CMD
+    root       13593   13584  0 14:46 pts/0    00:00:00 sudo -i
+    root       13595   13593  0 14:46 pts/0    00:00:00   -bash
+    root       13606   13595  0 14:47 pts/0    00:00:00     unshare -f --pid --mount-proc sleep 1h
+    root       13607   13606  0 14:47 pts/0    00:00:00       sleep 1h
+    root       13608   13595  0 14:47 pts/0    00:00:00     ps -fH
+    # nsenter --target 13607 --pid --mount
+    root@vagrant:/# ps -aux
+    USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+    root           1  0.0  0.0   5476   580 pts/0    S    14:47   0:00 sleep 1h
+    root           2  0.5  0.3   7236  4000 pts/0    S    14:48   0:00 -bash
+    root          13  0.0  0.3   9080  3564 pts/0    R+   14:48   0:00 ps -aux
+
+
+    vagrant@vagrant:~$ unshare -f --pid --map-root-user --mount-proc sleep 1h &
+    [1] 13682
+    vagrant@vagrant:~$ ps -fH
+    UID          PID    PPID  C STIME TTY          TIME CMD
+    vagrant    13584   13583  0 14:46 pts/0    00:00:00 -bash
+    vagrant    13682   13584  0 14:50 pts/0    00:00:00   unshare -f --pid --map-root-user --mount-proc sleep 1h
+    vagrant    13683   13682  0 14:50 pts/0    00:00:00     sleep 1h
+    vagrant    13684   13584  0 14:50 pts/0    00:00:00   ps -fH
+    vagrant@vagrant:~$ nsenter --target 13683 --pid --mount --user --preserve-credentials
+    root@vagrant:/# ps -aux
+    USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+    root           1  0.0  0.0   5476   580 pts/0    S    14:50   0:00 sleep 1h
+    root          39  0.3  0.4   7360  4160 pts/0    S    15:02   0:00 -bash
+    root          48  0.0  0.3   9080  3540 pts/0    R+   15:03   0:00 ps -aux
+
+
+
+### 7. Найдите информацию о том, что такое :(){ :|:& };:. Запустите эту команду в своей виртуальной машине Vagrant с Ubuntu 20.04 (это важно, поведение в других ОС не проверялось). Некоторое время все будет "плохо", после чего (минуты) – ОС должна стабилизироваться. Вызов dmesg расскажет, какой механизм помог автоматической стабилизации. Как настроен этот механизм по-умолчанию, и как изменить число процессов, которое можно создать в сессии?
