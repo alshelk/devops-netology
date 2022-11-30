@@ -69,7 +69,7 @@ HOST: stackoverflow.com
 - проверьте время загрузки страницы, какой запрос обрабатывался дольше всего?
 - приложите скриншот консоли браузера в ответ.
 
-
+---
     Сайт взят тот же что в первом задании
 
     General
@@ -88,6 +88,8 @@ HOST: stackoverflow.com
       Transfer-Encoding: chunked
 
     Дольше всего обрабатывался "Content Download" (загрузка содержимого сайта)
+---
+
 
 ![img.png](img.png)
 ![img_1.png](img_1.png)
