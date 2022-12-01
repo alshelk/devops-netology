@@ -6,7 +6,7 @@
 - предусмотрите возможность добавления опций к запускаемому процессу через внешний файл (посмотрите, например, на systemctl cat cron),
 - удостоверьтесь, что с помощью systemctl процесс корректно стартует, завершается, а после перезагрузки автоматически поднимается.
 
-
+````
     создаем unit-файл: sudo systemctl edit --full --force node_exporter.service
     
     $ sudo systemctl cat node_exporter
@@ -34,7 +34,58 @@
     ExecStart=/usr/local/bin/node_exporter
     [Install]
     WantedBy=multi-user.target
+````
+---
+    Уточнения как добавляются опции через внешний файл
 
+    Опции для запуска прописываются в файле который указан в поле EnvironmentFile, при этом в поле ExecStart 
+    добавляем переменную объявленную в файле из поля EnvironmentFile. Как указано в примере ниже.
+
+    $ cat /etc/systemd/system/node_exporter.service 
+    [Unit]
+    Description=Node Exporter
+    Wants=network-online.target
+    After=network-online.target
+    
+    [Service]
+    User=node_exporter
+    Group=node_exporter
+    Type=simple
+    EnvironmentFile=-/etc/default/node_exporter
+    ExecStart=/usr/local/bin/node_exporter $OPTIONS
+    
+    [Install]
+    WantedBy=multi-user.target
+
+     cat /etc/default/node_exporter 
+    OPTIONS='--collector.disable-defaults --collector.cpu --collector.meminfo'
+
+    Проверяем как отработали наши парметры запуска node_exporter:
+
+    $ sudo systemctl status node_exporter.service
+    ● node_exporter.service - Node Exporter
+         Loaded: loaded (/etc/systemd/system/node_exporter.service; enabled; vendor preset: enabled)
+         Active: active (running) since Thu 2022-12-01 16:15:05 UTC; 11min ago
+       Main PID: 68115 (node_exporter)
+          Tasks: 4 (limit: 1066)
+         Memory: 1.9M
+         CGroup: /system.slice/node_exporter.service
+                 └─68115 /usr/local/bin/node_exporter --collector.disable-defaults --collector.cpu --collector.meminfo
+    
+    Dec 01 16:15:05 vagrant systemd[1]: Started Node Exporter.
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.078Z caller=node_exporter.go:180 level=info msg="Starting node_ex>
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.079Z caller=node_exporter.go:181 level=info msg="Build context" b>
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.080Z caller=node_exporter.go:110 level=info msg="Enabled collecto>
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.081Z caller=node_exporter.go:117 level=info collector=cpu
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.081Z caller=node_exporter.go:117 level=info collector=meminfo
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.082Z caller=tls_config.go:232 level=info msg="Listening on" addre>
+    Dec 01 16:15:05 vagrant node_exporter[68115]: ts=2022-12-01T16:15:05.083Z caller=tls_config.go:235 level=info msg="TLS is disabled." h>
+
+
+    как видно , нод экспортер запустился ровно с теми коллекторами что мы указали
+    
+---
+````
     Проверяем запуск и остановку сервиса:
     vagrant@vagrant:~$ sudo systemctl start node_exporter.service
     vagrant@vagrant:~$ sudo systemctl status node_exporter.service
@@ -57,7 +108,7 @@
          Loaded: loaded (/etc/systemd/system/node_exporter.service; enabled; vendor preset: enabled)
          Active: active (running) since Wed 2022-11-23 01:43:03 UTC; 1 day 13h ago
 
-
+````
 ### 2. Ознакомьтесь с опциями node_exporter и выводом /metrics по-умолчанию. Приведите несколько опций, которые вы бы выбрали для базового мониторинга хоста по CPU, памяти, диску и сети.
 
     если я правильно понял задание, то опции следующие:
