@@ -86,21 +86,30 @@ Hey, Netology
 - Подключитесь во второй контейнер и отобразите листинг и содержание файлов в ```/data``` контейнера.
 
 
+Решение:
+
     $ docker run -dt --name centos --mount type=bind,source=/home/vagrant/docker/data,destination=/data centos
     3dfe7d3d31c38a41789df166a199d2e4e3959d39b9af87422d9a1f9143df42f2
+
     $ docker run -dt --name debian --mount type=bind,source=/home/vagrant/docker/data,destination=/data debian
     f315d421595c4d7fffcb98eb9d10123231bc889f9d683b9755d8e86e289887a1
+
     $ docker ps
     CONTAINER ID   IMAGE     COMMAND       CREATED              STATUS              PORTS     NAMES
     f315d421595c   debian    "bash"        13 seconds ago       Up 11 seconds                 debian
     3dfe7d3d31c3   centos    "/bin/bash"   About a minute ago   Up About a minute             centos
+
     $ docker exec centos echo 'test file created in CentOS docker' > /data/testfile
+
     $ echo 'test file created on host' > data/testfile2
+
     $ docker exec debian ls /data
     testfile
     testfile2
+
     $ docker exec debian cat /data/testfile
     test file created in CentOS docker
+
     $ docker exec debian cat /data/testfile2
     test file created on host
 
