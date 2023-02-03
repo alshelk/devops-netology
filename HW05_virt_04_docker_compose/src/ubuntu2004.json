@@ -1,0 +1,18 @@
+{
+    "builders": [
+      {
+        "type": "yandex",
+        "token": "y0_AgAAAABoV4oGAATuwQAAAADbPE1UemVIiMelQ9u0bfPMFd75PGuvMk8",
+        "folder_id": "b1gs8f7ibom6nv7b1qnd",
+        "zone": "ru-central1-a",
+        "image_name": "ubuntu-2004-lts",
+        "image_family": "ubuntu-2004",
+        "image_description": "Ubuntu20 base image",
+        "source_image_family": "ubuntu-2004-lts",
+        "subnet_id": "e9bc69v1o4e97g116dqa",
+        "use_ipv4_nat": true,
+        "disk_type": "network-ssd",
+        "ssh_username": "ubuntu"
+      }
+    ]
+}

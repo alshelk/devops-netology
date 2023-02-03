@@ -1,0 +1,6 @@
+[nodes:children]
+manager
+
+[manager]
+node01.netology.cloud ansible_host=51.250.87.118 ansible_port=22 ansible_user=ubuntu
+node02.netology.cloud ansible_host=158.160.59.44 ansible_port=22 ansible_user=ubuntu
