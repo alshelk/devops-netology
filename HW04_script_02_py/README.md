@@ -14,11 +14,11 @@ c = a + b
 
 ### Вопросы:
 
-| Вопрос  | Ответ |
-| ------------- | ------------- |
-| Какое значение будет присвоено переменной `c`?  | ???  |
-| Как получить для переменной `c` значение 12?  | ???  |
-| Как получить для переменной `c` значение 3?  | ???  |
+| Вопрос  | Ответ                                                                                                                   |
+| ------------- |-------------------------------------------------------------------------------------------------------------------------|
+| Какое значение будет присвоено переменной `c`?  | значение не будет присвоенно, т.к. скрипт выдаст ошибку (TypeError: unsupported operand type(s) for +: 'int' and 'str') |
+| Как получить для переменной `c` значение 12?  | c = str(a) + b                                                                                                          |
+| Как получить для переменной `c` значение 3?  | c = a + int(b)                                                                                                          |
 
 ------
 
@@ -45,12 +45,24 @@ for result in result_os.split('\n'):
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+
+path = '~/netology/sysadm-homeworks/'
+bash_command = ["cd "+path, "git status"]
+result_os = os.popen(' && '.join(bash_command)).read()
+is_change = False
+for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+        prepare_result = result.replace('\tmodified:   ', '').strip()
+        print(path+prepare_result)
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+~/netology/sysadm-homeworks/HW04_script_01_bash/README.md
+~/netology/sysadm-homeworks/HW04_script_02_py/README.md
 ```
 
 ------
@@ -61,12 +73,78 @@ for result in result_os.split('\n'):
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+from sys import argv
+
+paths = []
+
+if len(argv) == 1:
+    print("Directories not defined. Check current directory", end="\n\n")
+    paths = ["./"]
+else:
+    for i in range(1, len(argv)):
+        if not os.path.isdir(argv[i]):
+            print("Directory \"{}\" doesn't exist".format(argv[i]), end="\n\n")
+        else:
+            paths.append(argv[i])
+
+if len(paths) == 0:
+    print("Directories not defined correctly", end="\n\n")
+else:
+    git_top_levels = []
+    for path in paths:
+        git_top_command = ["cd "+path, "git rev-parse --show-toplevel 2>&1"]
+        git_temp = os.popen(' && '.join(git_top_command)).read().replace('\n', '/')
+        if git_temp.find('fatal') != -1:
+            print("In \"{}\" {}".format(path, git_temp.replace('fatal: ','')), end="\n\n")
+            continue
+
+        if not git_temp in git_top_levels:
+            git_top_levels.append(git_temp)
+
+    for git_top_level in git_top_levels:
+        bash_command = ["cd "+git_top_level, "git status"]
+        result_os = os.popen(' && '.join(bash_command)).read()
+        is_change = False
+        for result in result_os.split('\n'):
+            if result.find('изменено') != -1:
+                prepare_result = result.replace('\tизменено:   ', '').strip()
+                print(git_top_level+prepare_result)
+
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+------------------------------
+Запуск скрипта с параметрами, когда хотя бы один параметр указывает на git репозиторий
+------------------------------
+$ HW04_script_02_py/test.py ~/netology/sysadm-homeworks/HW04_script_02_py ~/netology ~/32
+Directory "/home/vagrant/32" doesn't exist
+
+In "/home/vagrant/netology" не найден git репозиторий (или один из родительских каталогов): .git/
+
+/home/vagrant/netology/sysadm-homeworks/HW04_script_01_bash/README.md
+/home/vagrant/netology/sysadm-homeworks/HW04_script_02_py/README.md
+
+------------------------------
+Запуск скрипта с параметрами, когда не указан git репозиторий
+------------------------------
+$ HW04_script_02_py/test.py  ~/32
+Directory "/home/vagrant/32" doesn't exist
+
+Directories not defined correctly
+
+------------------------------
+Запуск скрипта без параметров
+------------------------------
+$ HW04_script_02_py/test.py
+Directories not defined. Check current directory
+
+/home/vagrant/netology/sysadm-homeworks/HW04_script_01_bash/README.md
+/home/vagrant/netology/sysadm-homeworks/HW04_script_02_py/README.md
+
 ```
 
 ------
