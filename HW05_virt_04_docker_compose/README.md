@@ -160,6 +160,11 @@ dc22b62b1f48   prom/alertmanager:latest          "/bin/alertmanager -…"   27 m
 </p>
 
 
+
+
+
+
+
 ----------
 ## Ответ:
 
