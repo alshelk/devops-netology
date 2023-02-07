@@ -164,13 +164,74 @@ Directories not defined. Check current directory
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import requests
+import socket
+import time
+
+services = {'drive.google.com':'0.0.0.0', 'mail.google.com':'0.0.0.0', 'google.com/t':'0.0.0.0'}
+
+while True:
+    for name in services:
+
+        # опрашивает веб-сервисы
+        try:
+            response = requests.get('https://'+name).status_code
+        except Exception as e:
+            print("Connection to {} Error. Technical Details given below.".format(name))
+            print(e)
+        else:
+            if response != 200:
+                print('Service {} have been unavailable. Status code: {}'.format(name, response))
+
+        # Получаем ip
+        try:
+            ip = socket.gethostbyname(name)
+        except Exception as e:
+            print("Get ip for {} Error (2). Technical Details given below.".format(name))
+            print(e)
+
+        # проверка текущего IP сервиса c его IP из предыдущей проверкой
+        if ip != services[name]:
+            print('[ERROR] {} IP mismatch: {} {}'.format(name, services[name], ip))
+            services[name] = ip
+        else:
+            # выводит информацию в стандартный вывод в виде: <URL сервиса> - <его IP>.
+            print(name+' - '+ip)
+
+    time.sleep(5)
+    print()
+
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+[ERROR] drive.google.com IP mismatch: 0.0.0.0 74.125.205.194
+[ERROR] mail.google.com IP mismatch: 0.0.0.0 209.85.233.19
+[ERROR] google.com IP mismatch: 0.0.0.0 142.250.150.113
+
+drive.google.com - 74.125.205.194
+[ERROR] mail.google.com IP mismatch: 209.85.233.19 209.85.233.83
+[ERROR] google.com IP mismatch: 142.250.150.113 142.250.150.102
+
+drive.google.com - 74.125.205.194
+[ERROR] mail.google.com IP mismatch: 209.85.233.83 209.85.233.19
+[ERROR] google.com IP mismatch: 142.250.150.102 142.250.150.100
+
 ```
+
+
+```
+drive.google.com - 64.233.165.194
+[ERROR] mail.google.com IP mismatch: 209.85.233.83 209.85.233.19
+Service google.com/t have been unavailable. Status code: 404
+Get ip for google.com/t Error (2). Technical Details given below.
+[Errno -2] Name or service not known
+[ERROR] google.com/t IP mismatch: 209.85.233.83 209.85.233.19
+```
+
+
 
 ------
 
