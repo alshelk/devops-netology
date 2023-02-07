@@ -159,7 +159,12 @@ dc22b62b1f48   prom/alertmanager:latest          "/bin/alertmanager -…"   27 m
   <img width="1200" height="600" src="./img.png">
 </p>
 
-### Скриншоты 
+
+----------
+### Мои скриншоты: 
+
+
+
 
 ![img_1.png](img_1.png)
 
