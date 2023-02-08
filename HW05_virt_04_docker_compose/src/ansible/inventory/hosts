@@ -2,5 +2,5 @@
 manager
 
 [manager]
-node01.netology.cloud ansible_host=51.250.87.118 ansible_port=22 ansible_user=ubuntu
-node02.netology.cloud ansible_host=158.160.59.44 ansible_port=22 ansible_user=ubuntu
+node01.netology.cloud ansible_host=84.252.131.8 ansible_port=22 ansible_user=ubuntu
+node02.netology.cloud ansible_host=158.160.48.197 ansible_port=22 ansible_user=ubuntu

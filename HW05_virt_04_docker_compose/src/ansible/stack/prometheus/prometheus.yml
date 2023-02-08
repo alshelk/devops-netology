@@ -24,7 +24,7 @@ scrape_configs:
         labels: 
           env: node1
       - targets:
-        - 10.1.2.32:9100
+        - 10.1.2.15:9100
         labels:       
           env: node2
       
@@ -46,7 +46,7 @@ scrape_configs:
         labels:
           env: node1
       - targets:
-        - 10.1.2.32:8080
+        - 10.1.2.15:8080
         labels:
           env: node2
 
