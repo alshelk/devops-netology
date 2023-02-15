@@ -239,7 +239,6 @@ show bgp x.x.x.x/32
 
     
 
-
 3. Проверьте открытые TCP порты в Ubuntu, какие протоколы и приложения используют эти порты? Приведите несколько примеров.
 
 
@@ -278,6 +277,334 @@ show bgp x.x.x.x/32
 
 6. Установите Nginx, настройте в режиме балансировщика TCP или UDP.
 
+схема:
+![img.png](img.png)
+
+настройки nginx:
+
+```bash
+aleksey@test:~$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: ens3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:50:00:00:05:00 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.255.28/24 brd 192.168.255.255 scope global dynamic ens3
+       valid_lft 540sec preferred_lft 540sec
+    inet6 fe80::250:ff:fe00:500/64 scope link 
+       valid_lft forever preferred_lft forever
+3: ens4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:50:00:00:05:01 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.254.1/24 scope global ens4
+       valid_lft forever preferred_lft forever
+    inet6 fe80::250:ff:fe00:501/64 scope link 
+       valid_lft forever preferred_lft forever
+aleksey@test:~$ cat /etc/nginx/sites-enabled/proxy 
+upstream backend {
+  server 192.168.254.2;
+  server 192.168.254.3;
+}
+  
+server {
+  listen 80;
+
+  location / {
+    proxy_pass http://backend;
+  }
+}
+
+aleksey@test:~$ 
+
+
+```
+
+тест балансировки:
+
+```bash
+vagrant@vm1:~$ curl http://192.168.255.28 http://192.168.255.28 http://192.168.255.28
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+</head>
+<body>
+
+<h1>Backend host 1. IP 192.168.254.2</h1>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+</head>
+<body>
+
+<h1>Beckend host 2. IP 192.168.254.3</h1>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+</head>
+<body>
+
+<h1>Backend host 1. IP 192.168.254.2</h1>
+
+</body>
+</html>
+
+
+```
+
+
 7. Установите bird2, настройте динамический протокол маршрутизации RIP.
+
+![img_1.png](img_1.png)
+
+```bash
+$ sudo cat /etc/bird/bird.conf
+log syslog all;
+
+protocol device {
+}
+
+protocol direct {
+	ipv4;			# Connect to default IPv4 table
+
+	interface "dummy*";
+	interface "ens*";
+}
+
+protocol kernel {
+	ipv4 {			# Connect protocol to IPv4 table by channel
+	      export all;	# Export to protocol. default is export none
+	};
+	persist;
+}
+
+protocol rip {
+	ipv4 {
+		import all;
+		export all;
+	};
+	interface "ens*";
+}
+```
+
+node 1:
+```bash
+$ cat /etc/netplan/00-installer-config.yaml 
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    ens3:
+      dhcp4: true
+    ens4:
+      dhcp4: no
+      addresses: [ 192.168.13.1/24 ]
+    ens5:
+      dhcp4: no
+      addresses: [ 192.168.14.1/24 ]
+  bridges:
+    dummy0:
+      dhcp4: no
+      dhcp6: no
+      accept-ra: no
+      interfaces: [ ]
+      addresses: [ 10.1.1.1/32 ]
+  version: 2
+
+
+$ ip -br r
+default via 192.168.255.1 dev ens3 proto dhcp src 192.168.255.214 metric 100 
+10.1.1.1 dev dummy0 proto bird scope link metric 32 
+10.2.2.2 via 192.168.14.2 dev ens5 proto bird metric 32 
+10.3.3.3 via 192.168.13.3 dev ens4 proto bird metric 32 
+192.168.13.0/24 dev ens4 proto kernel scope link src 192.168.13.1 
+192.168.13.0/24 dev ens4 proto bird scope link metric 32 
+192.168.14.0/24 dev ens5 proto kernel scope link src 192.168.14.1 
+192.168.14.0/24 dev ens5 proto bird scope link metric 32 
+192.168.15.0/24 proto bird metric 32 
+	nexthop via 192.168.13.3 dev ens4 weight 1 
+	nexthop via 192.168.14.2 dev ens5 weight 1 
+192.168.255.0/24 dev ens3 proto kernel scope link src 192.168.255.214 
+192.168.255.0/24 dev ens3 proto bird scope link metric 32 
+192.168.255.1 dev ens3 proto dhcp scope link src 192.168.255.214 metric 100 
+
+
+$ sudo birdc
+BIRD 2.0.7 ready.
+bird> sh route
+Table master4:
+10.3.3.3/32          unicast [rip1 15:32:37.822] (120/2)
+	via 192.168.13.3 on ens4
+10.1.1.1/32          unicast [direct1 15:32:37.820] * (240)
+	dev dummy0
+192.168.255.0/24     unicast [direct1 15:32:37.820] * (240)
+	dev ens3
+192.168.14.0/24      unicast [direct1 15:32:37.820] * (240)
+	dev ens5
+                     unicast [rip1 15:32:37.821] (120/2)
+	via 192.168.14.2 on ens5
+192.168.15.0/24      unicast [rip1 15:32:37.822] (120/2)
+	via 192.168.13.3 on ens4 weight 1
+	via 192.168.14.2 on ens5 weight 1
+10.2.2.2/32          unicast [rip1 15:32:37.821] (120/2)
+	via 192.168.14.2 on ens5
+192.168.13.0/24      unicast [direct1 15:32:37.820] * (240)
+	dev ens4
+                     unicast [rip1 15:32:37.822] (120/2)
+	via 192.168.13.3 on ens4
+bird> sh rip nei
+rip1:
+IP address                Interface  Metric Routes    Seen
+192.168.13.3              ens4            1      3  20.678
+192.168.14.2              ens5            1      3  22.644
+
+
+```
+node 2:
+```bash
+$ cat /etc/netplan/00-installer-config.yaml 
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    ens3:
+      dhcp4: true
+    ens4:
+      dhcp4: no
+      addresses: [ 192.168.15.2/24 ]
+    ens5:
+      dhcp4: no
+      addresses: [ 192.168.14.2/24 ]
+  bridges:
+    dummy0:
+      dhcp4: no
+      dhcp6: no
+      accept-ra: no
+      interfaces: [ ]
+      addresses: [ 10.2.2.2/32 ]
+  version: 2
+
+$ ip -br r
+10.1.1.1 via 192.168.14.1 dev ens5 proto bird metric 32 
+10.2.2.2 dev dummy0 proto bird scope link metric 32 
+10.3.3.3 via 192.168.15.3 dev ens4 proto bird metric 32 
+192.168.13.0/24 proto bird metric 32 
+	nexthop via 192.168.14.1 dev ens5 weight 1 
+	nexthop via 192.168.15.3 dev ens4 weight 1 
+192.168.14.0/24 dev ens5 proto kernel scope link src 192.168.14.2 
+192.168.14.0/24 dev ens5 proto bird scope link metric 32 
+192.168.15.0/24 dev ens4 proto kernel scope link src 192.168.15.2 
+192.168.15.0/24 dev ens4 proto bird scope link metric 32 
+192.168.255.0/24 via 192.168.14.1 dev ens5 proto bird metric 32 
+
+$ sudo birdc
+BIRD 2.0.7 ready.
+bird> sh route 
+Table master4:
+10.3.3.3/32          unicast [rip1 15:31:38.891] (120/2)
+	via 192.168.15.3 on ens4
+10.1.1.1/32          unicast [rip1 15:30:13.675] (120/2)
+	via 192.168.14.1 on ens5
+192.168.255.0/24     unicast [rip1 15:30:13.675] (120/2)
+	via 192.168.14.1 on ens5
+192.168.14.0/24      unicast [direct1 15:30:13.670] * (240)
+	dev ens5
+                     unicast [rip1 15:30:13.675] (120/2)
+	via 192.168.14.1 on ens5
+192.168.15.0/24      unicast [direct1 15:30:13.670] * (240)
+	dev ens4
+                     unicast [rip1 15:31:38.891] (120/2)
+	via 192.168.15.3 on ens4
+10.2.2.2/32          unicast [direct1 15:30:13.670] * (240)
+	dev dummy0
+192.168.13.0/24      unicast [rip1 15:31:38.891] (120/2)
+	via 192.168.14.1 on ens5 weight 1
+	via 192.168.15.3 on ens4 weight 1
+bird> sh rip nei
+rip1:
+IP address                Interface  Metric Routes    Seen
+192.168.15.3              ens4            1      3   4.842
+192.168.14.1              ens5            1      4   1.477
+
+```
+
+node 3:
+```bash
+$ cat /etc/netplan/00-installer-config.yaml 
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    ens3:
+      dhcp4: true
+    ens4:
+      dhcp4: no
+      addresses: [ 192.168.13.3/24 ]
+    ens5:
+      dhcp4: no
+      addresses: [ 192.168.15.3/24 ]
+  bridges:
+    dummy0:
+      dhcp4: no
+      dhcp6: no
+      accept-ra: no
+      interfaces: [ ]
+      addresses: [ 10.3.3.3/32 ]
+  version: 2
+
+$ ip -br r
+10.1.1.1 via 192.168.13.1 dev ens4 proto bird metric 32 
+10.2.2.2 via 192.168.15.2 dev ens5 proto bird metric 32 
+10.3.3.3 dev dummy0 proto bird scope link metric 32 
+192.168.13.0/24 dev ens4 proto kernel scope link src 192.168.13.3 
+192.168.13.0/24 dev ens4 proto bird scope link metric 32 
+192.168.14.0/24 proto bird metric 32 
+	nexthop via 192.168.13.1 dev ens4 weight 1 
+	nexthop via 192.168.15.2 dev ens5 weight 1 
+192.168.15.0/24 dev ens5 proto kernel scope link src 192.168.15.3 
+192.168.15.0/24 dev ens5 proto bird scope link metric 32 
+192.168.255.0/24 via 192.168.13.1 dev ens4 proto bird metric 32 
+
+$ sudo birdc
+BIRD 2.0.7 ready.
+bird> sh route 
+Table master4:
+10.3.3.3/32          unicast [direct1 15:31:38.849] * (240)
+	dev dummy0
+10.1.1.1/32          unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.13.1 on ens4
+192.168.255.0/24     unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.13.1 on ens4
+192.168.14.0/24      unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.13.1 on ens4 weight 1
+	via 192.168.15.2 on ens5 weight 1
+192.168.15.0/24      unicast [direct1 15:31:38.849] * (240)
+	dev ens5
+                     unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.15.2 on ens5
+10.2.2.2/32          unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.15.2 on ens5
+192.168.13.0/24      unicast [direct1 15:31:38.849] * (240)
+	dev ens4
+                     unicast [rip1 15:31:38.854] (120/2)
+	via 192.168.13.1 on ens4
+bird> sh rip neighbors 
+rip1:
+IP address                Interface  Metric Routes    Seen
+192.168.13.1              ens4            1      4   1.651
+192.168.15.2              ens5            1      3   2.926
+
+
+```
+
+
+
 
 8. Установите Netbox, создайте несколько IP префиксов, используя curl проверьте работу API.
