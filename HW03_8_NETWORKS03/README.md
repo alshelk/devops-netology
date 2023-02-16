@@ -608,3 +608,135 @@ IP address                Interface  Metric Routes    Seen
 
 
 8. Установите Netbox, создайте несколько IP префиксов, используя curl проверьте работу API.
+
+
+```bash
+$ systemctl status netbox
+● netbox.service - NetBox WSGI Service
+     Loaded: loaded (/etc/systemd/system/netbox.service; enabled; vendor preset: enabled)
+     Active: active (running) since Thu 2023-02-16 12:02:33 UTC; 19min ago
+       Docs: https://docs.netbox.dev/
+   Main PID: 15015 (gunicorn)
+      Tasks: 6 (limit: 4612)
+     Memory: 365.2M
+     CGroup: /system.slice/netbox.service
+             ├─15015 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+             ├─15033 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+             ├─15034 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+             ├─15035 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+             ├─15036 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+             └─15037 /opt/netbox-3.4.4/venv/bin/python3 /opt/netbox/venv/bin/gunicorn --pid /var/tmp/netbox.pid --pythonpath /opt/netbox/netbox --config /opt/netbox/gunicorn.py netbox.wsgi
+
+Feb 16 12:02:33 test systemd[1]: Started NetBox WSGI Service.
+Feb 16 12:02:34 test gunicorn[15015]: [2023-02-16 12:02:34 +0000] [15015] [INFO] Starting gunicorn 20.1.0
+Feb 16 12:02:34 test gunicorn[15015]: [2023-02-16 12:02:34 +0000] [15015] [INFO] Listening at: http://127.0.0.1:8001 (15015)
+Feb 16 12:02:34 test gunicorn[15015]: [2023-02-16 12:02:34 +0000] [15015] [INFO] Using worker: gthread
+Feb 16 12:02:34 test gunicorn[15033]: [2023-02-16 12:02:34 +0000] [15033] [INFO] Booting worker with pid: 15033
+Feb 16 12:02:34 test gunicorn[15034]: [2023-02-16 12:02:34 +0000] [15034] [INFO] Booting worker with pid: 15034
+Feb 16 12:02:34 test gunicorn[15035]: [2023-02-16 12:02:34 +0000] [15035] [INFO] Booting worker with pid: 15035
+Feb 16 12:02:34 test gunicorn[15036]: [2023-02-16 12:02:34 +0000] [15036] [INFO] Booting worker with pid: 15036
+Feb 16 12:02:34 test gunicorn[15037]: [2023-02-16 12:02:34 +0000] [15037] [INFO] Booting worker with pid: 15037
+
+
+
+```
+
+проверка API
+
+```bash
+$curl -X GET -H "Authorization: Token b20e7cb337d405917d23c1a817f8ecfaf9845xxc" -H "Accept: application/json; indent=4" http://192.168.255.214:8000/api/ipam/prefixes/
+{
+    "count": 3,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "url": "http://192.168.255.214:8000/api/ipam/prefixes/1/",
+            "display": "192.168.13.0/24",
+            "family": {
+                "value": 4,
+                "label": "IPv4"
+            },
+            "prefix": "192.168.13.0/24",
+            "site": null,
+            "vrf": null,
+            "tenant": null,
+            "vlan": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "role": null,
+            "is_pool": false,
+            "mark_utilized": false,
+            "description": "",
+            "comments": "",
+            "tags": [],
+            "custom_fields": {},
+            "created": "2023-02-16T12:18:53.650238Z",
+            "last_updated": "2023-02-16T12:18:53.650255Z",
+            "children": 0,
+            "_depth": 0
+        },
+        {
+            "id": 2,
+            "url": "http://192.168.255.214:8000/api/ipam/prefixes/2/",
+            "display": "192.168.14.0/24",
+            "family": {
+                "value": 4,
+                "label": "IPv4"
+            },
+            "prefix": "192.168.14.0/24",
+            "site": null,
+            "vrf": null,
+            "tenant": null,
+            "vlan": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "role": null,
+            "is_pool": false,
+            "mark_utilized": false,
+            "description": "",
+            "comments": "",
+            "tags": [],
+            "custom_fields": {},
+            "created": "2023-02-16T12:19:12.918859Z",
+            "last_updated": "2023-02-16T12:19:12.918875Z",
+            "children": 0,
+            "_depth": 0
+        },
+        {
+            "id": 3,
+            "url": "http://192.168.255.214:8000/api/ipam/prefixes/3/",
+            "display": "192.168.15.0/24",
+            "family": {
+                "value": 4,
+                "label": "IPv4"
+            },
+            "prefix": "192.168.15.0/24",
+            "site": null,
+            "vrf": null,
+            "tenant": null,
+            "vlan": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "role": null,
+            "is_pool": false,
+            "mark_utilized": false,
+            "description": "",
+            "comments": "",
+            "tags": [],
+            "custom_fields": {},
+            "created": "2023-02-16T12:19:24.781688Z",
+            "last_updated": "2023-02-16T12:19:24.781705Z",
+            "children": 0,
+            "_depth": 0
+        }
+    ]
+
+```
