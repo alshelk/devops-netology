@@ -1,0 +1,15 @@
+---
+  - name: Install docker
+    shell: curl -fsSL get.docker.com -o get-docker.sh && chmod +x get-docker.sh && ./get-docker.sh
+
+  - name: Add the current user to docker group
+    user:
+      name: ubuntu
+      append: yes
+      groups: docker
+
+  - name: Enable docker daemon
+    systemd:
+      name: docker
+      state: started
+      enabled: yes
