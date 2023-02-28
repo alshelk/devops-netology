@@ -320,7 +320,6 @@ test_db=# EXPLAIN SELECT * FROM clients WHERE order_no IS NOT NULL;
 Приведите получившийся результат и объясните что значат полученные значения. 
 
 ```text
-
 Seq Scan on clients - говорит что чтение из таблицы clients выполнялось последовательно, блок за блоком.
 cost=0.00..1.05 - Приблизительная стоимость запуска. Это время, которое проходит, прежде чем начнётся этап вывода данных, где 0.00 - затраты на получение первой строки, 1.05 на получение всех строк
 rows - Приблизительное количество возвращаемых строк при выполнении операции Seq Scan
@@ -328,6 +327,8 @@ width - Ожидаемый средний размер одной строки �
 Filter: (order_no IS NOT NULL) - говорит что каждая запись сравнивается с условием и если оно выполняется, выводится в результат. Иначе - отбрасывается
 
 Это все планируемые результаты запроса.
+
+Для получения результатов на реальных данных нужно использовать EXPLAIN (ANALYZE):
 ```
 
 
@@ -344,15 +345,207 @@ test_db=# EXPLAIN (ANALYZE) SELECT * FROM clients WHERE order_no IS NOT NULL;
 
 ```
 
+```text
+actual time - реальное время в миллисекундах, затраченное на получение первой строки и всех строк соответственно
+rows - реальное количество строк
+loops - сколько раз пришлось выполнить операцию
+Rows Removed by Filter - количество строк удаленных фильтром
+Planning Time - планируемое время выполнения
+Execution Time - время выполнения
+
+```
+
+
 ## Задача 6
 
 Создайте бэкап БД test_db и поместите его в volume, предназначенный для бэкапов (см. Задачу 1).
 
+```bash
+$ docker exec -t docker-compose-pg_db-1 pg_dump -U postgres test_db -f /backup/test_db.sql
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     docker-compose_pg_backup
+local     docker-compose_pg_data
+$ docker volume inspect docker-compose_pg_backup | grep Mount
+        "Mountpoint": "/var/lib/docker/volumes/docker-compose_pg_backup/_data",
+$ sudo ls /var/lib/docker/volumes/docker-compose_pg_backup/_data
+test_db.sql
+
+
+```
+
 Остановите контейнер с PostgreSQL (но не удаляйте volumes).
+
+```bash
+$ docker-compose stop
+[+] Running 1/1
+ ⠿ Container docker-compose-pg_db-1  Stopped
+$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     docker-compose_pg_backup
+local     docker-compose_pg_data
+     
+```
 
 Поднимите новый пустой контейнер с PostgreSQL.
 
+```bash
+$ docker run --rm -d -v pg-data:/var/lib/postgresql/data -v docker-compose_pg_backup:/backup --name pg_db -e POSTGRES_PASSWORD=passw0rd -p 5432:5432 postgres:12
+93d4c45f04007680b8f012363b9808cbd96f50360e3bc9db7735cd56a15850ad
+$ docker ps
+CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+93d4c45f0400   postgres:12   "docker-entrypoint.s…"   30 seconds ago   Up 29 seconds   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp   pg_db
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     docker-compose_pg_backup
+local     docker-compose_pg_data
+local     pg-data
+$ docker exec -it pg_db psql -U postgres
+psql (12.14 (Debian 12.14-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# \l+
+                                                                   List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges   |  Size   | Tablespace |                Description                 
+-----------+----------+----------+------------+------------+-----------------------+---------+------------+--------------------------------------------
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |                       | 7969 kB | pg_default | default administrative connection database
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +| 7825 kB | pg_default | unmodifiable empty database
+           |          |          |            |            | postgres=CTc/postgres |         |            | 
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +| 7825 kB | pg_default | default template for new databases
+           |          |          |            |            | postgres=CTc/postgres |         |            | 
+(3 rows)
+
+
+```
+
 Восстановите БД test_db в новом контейнере.
+
+```bash
+$ docker exec -it pg_db psql -U postgres
+psql (12.14 (Debian 12.14-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# \l+
+                                                                   List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges   |  Size   | Tablespace |                Description                 
+-----------+----------+----------+------------+------------+-----------------------+---------+------------+--------------------------------------------
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |                       | 7969 kB | pg_default | default administrative connection database
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +| 7825 kB | pg_default | unmodifiable empty database
+           |          |          |            |            | postgres=CTc/postgres |         |            | 
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +| 7825 kB | pg_default | default template for new databases
+           |          |          |            |            | postgres=CTc/postgres |         |            | 
+(3 rows)
+
+postgres=# CREATE DATABASE test_db;
+CREATE DATABASE
+test_db=# CREATE USER "test-admin-user" PASSWORD '123';
+CREATE ROLE
+test_db=# CREATE USER "test-simple-user" PASSWORD '321';
+CREATE ROLE
+test_db=# exit
+
+$ docker exec pg_db ls /backup
+test_db.sql
+$ docker exec -t pg_db psql -U postgres -f /backup/test_db.sql -d test_db
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER TABLE
+ALTER SEQUENCE
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER TABLE
+ALTER SEQUENCE
+ALTER TABLE
+ALTER TABLE
+COPY 5
+COPY 5
+ setval 
+--------
+      5
+(1 row)
+
+ setval 
+--------
+      5
+(1 row)
+
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+GRANT
+GRANT
+GRANT
+GRANT
+$ docker exec -it pg_db psql -U postgres
+psql (12.14 (Debian 12.14-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# \c test_db
+You are now connected to database "test_db" as user "postgres".
+test_db=# \dt+
+                       List of relations
+ Schema |  Name   | Type  |  Owner   |    Size    | Description 
+--------+---------+-------+----------+------------+-------------
+ public | clients | table | postgres | 8192 bytes | 
+ public | orders  | table | postgres | 8192 bytes | 
+(2 rows)
+
+test_db=# \dp+
+                                           Access privileges
+ Schema |      Name      |   Type   |         Access privileges          | Column privileges | Policies 
+--------+----------------+----------+------------------------------------+-------------------+----------
+ public | clients        | table    | postgres=arwdDxt/postgres         +|                   | 
+        |                |          | "test-admin-user"=arwdDxt/postgres+|                   | 
+        |                |          | "test-simple-user"=arwd/postgres   |                   | 
+ public | clients_id_seq | sequence |                                    |                   | 
+ public | orders         | table    | postgres=arwdDxt/postgres         +|                   | 
+        |                |          | "test-admin-user"=arwdDxt/postgres+|                   | 
+        |                |          | "test-simple-user"=arwd/postgres   |                   | 
+ public | orders_id_seq  | sequence |                                    |                   | 
+(4 rows)
+
+test_db=# SELECT * FROM clients;
+ id |       surname        | country | order_no 
+----+----------------------+---------+----------
+  4 | Ронни Джеймс Дио     | Russia  |         
+  5 | Ritchie Blackmore    | Russia  |         
+  1 | Иванов Иван Иванович | USA     |        3
+  2 | Петров Петр Петрович | Canada  |        4
+  3 | Иоганн Себастьян Бах | Japan   |        5
+(5 rows)
+
+test_db=# SELECT * FROM orders;
+ id |  name   | price 
+----+---------+-------
+  1 | Шоколад |    10
+  2 | Принтер |  3000
+  3 | Книга   |   500
+  4 | Монитор |  7000
+  5 | Гитара  |  4000
+(5 rows)
+
+```
 
 Приведите список операций, который вы применяли для бэкапа данных и восстановления. 
 
