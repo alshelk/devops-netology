@@ -255,5 +255,9 @@ ALTER TABLE public.orders_2
     ADD CONSTRAINT orders_2_title_uniq UNIQUE (title);
 
 ```
+[Бэкап-файл](test_database_dump_uniq_title.sql) с добавлением UNIQUE для столбца `title`
+
+
+
 
 ---
