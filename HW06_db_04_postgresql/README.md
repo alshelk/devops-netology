@@ -227,4 +227,37 @@ test_database_dump.sql
 
 Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
 
+```text
+Добавлением  CONSTRAINT title_uniq UNIQUE (title) для каждой таблицы:
+```
+
+
+```sql
+--
+-- Name: orders orders_title_uniq; Type CONSTRAINT; Scheme: public; Owner: postgres
+--
+
+ALTER TABLE public.orders
+    ADD CONSTRAINT orders_title_uniq UNIQUE (title);
+
+--
+-- Name: orders_1 orders_1_title_uniq; Type CONSTRAINT; Scheme: public; Owner: postgres
+--
+
+ALTER TABLE public.orders_1
+    ADD CONSTRAINT orders_1_title_uniq UNIQUE (title);
+
+--
+-- Name: orders orders_2_title_uniq; Type CONSTRAINT; Scheme: public; Owner: postgres
+--
+
+ALTER TABLE public.orders_2
+    ADD CONSTRAINT orders_2_title_uniq UNIQUE (title);
+
+```
+[Бэкап-файл](test_database_dump_uniq_title.sql) с добавлением UNIQUE для столбца `title`
+
+
+
+
 ---
