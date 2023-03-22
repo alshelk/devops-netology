@@ -9,7 +9,7 @@ terraform {
 
 provider "virtualbox" {
   delay      = 60
-  mintimeout = 5
+  mintimeout = 10
 }
 
 resource "virtualbox_vm" "vm-tr1" {
@@ -21,7 +21,7 @@ resource "virtualbox_vm" "vm-tr1" {
 
   network_adapter {
     type           = "hostonly"
-#    device         = "IntelPro1000MTDesktop"
+    device         = "IntelPro1000MTDesktop"
     host_interface = "vboxnet0"
     # On Windows use this instead
     # host_interface = "VirtualBox Host-Only Ethernet Adapter"
