@@ -22,7 +22,7 @@ resource "virtualbox_vm" "vm-tr1" {
   network_adapter {
     type           = "hostonly"
 #    device         = "IntelPro1000MTDesktop"
-    host_interface = "vboxnet1"
+    host_interface = "vboxnet0"
     # On Windows use this instead
     # host_interface = "VirtualBox Host-Only Ethernet Adapter"
   }

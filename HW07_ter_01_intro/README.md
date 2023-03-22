@@ -224,7 +224,7 @@ Terraform will perform the following actions:
 
       + network_adapter {
           + device                 = "IntelPro1000MTServer"
-          + host_interface         = "vboxnet1"
+          + host_interface         = "vboxnet0"
           + ipv4_address           = (known after apply)
           + ipv4_address_available = (known after apply)
           + mac_address            = (known after apply)
@@ -237,6 +237,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 
 Changes to Outputs:
   + IPAddress = (known after apply)
+
 
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
