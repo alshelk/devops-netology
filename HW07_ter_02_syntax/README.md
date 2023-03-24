@@ -451,6 +451,10 @@ variable "vm_metadata" {
 
 3:
 
+[variables.tf](src%2Fvariables.tf)
+
+[vms_platform.tf](src%2Fvms_platform.tf)
+
 ```text
 Закомментировал переменные на удаление. 
 ```
