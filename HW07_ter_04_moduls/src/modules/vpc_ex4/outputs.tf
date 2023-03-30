@@ -5,6 +5,6 @@ output "vpc_id" {
 
 output "subnet_id" {
   count = yandex_vpc_subnet.new_subnet
-  value = yandex_vpc_subnet.new_subnet.id
+  value = [ for subnet in yandex_vpc_subnet.new_subnet : subnet.id ] 
   description = "subnets id"
 }
