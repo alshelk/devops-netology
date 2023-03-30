@@ -13,8 +13,9 @@ resource "yandex_vpc_network" "new_vpc" {
 
 #создаем подсеть
 resource "yandex_vpc_subnet" "new_subnet" {
-  name           = "${var.vpc_name}-${var.default_zone}"
-  zone           = var.default_zone
+  count          = length(var.subnets)
+  name           = "${var.vpc_name}-${var.subnets[count.index].zone}"
+  zone           = var.subnets[count.index].zone
   network_id     = yandex_vpc_network.new_vpc.id
-  v4_cidr_blocks = var.default_cidr
+  v4_cidr_blocks = var.subnets[count.index].cidr
 }
