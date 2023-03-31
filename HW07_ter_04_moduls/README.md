@@ -703,8 +703,329 @@ $ yc vpc subnet list
 
 3. создание кластера с последующим добавление базы и пользователя [main.tf](src%2Fhw_terraform_ex5%2Fmain.tf)
 
+Переменная HA установленна в false и создается один host в кластере
 
+```terraform
+module "cl_mysql" {
+  source        = "../modules/create_mysql_cluster"
 
+  cluster_name  = "example"
+  network_id    = module.vpc_dev.vpc_id
+  subnet_id     = module.vpc_dev.subnet_id[0]
+  default_zone  = "ru-central1-a"
+  HA            = false
+
+  depends_on    = [module.vpc_dev]
+}
+
+```
+
+```bash
+$ terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # random_password.password will be created
+  + resource "random_password" "password" {
+      + id          = (known after apply)
+      + length      = 8
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + result      = (sensitive value)
+      + special     = true
+      + upper       = true
+    }
+
+  # module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql will be created
+  + resource "yandex_mdb_mysql_cluster" "cl_mysql" {
+      + allow_regeneration_host   = false
+      + backup_retain_period_days = (known after apply)
+      + created_at                = (known after apply)
+      + deletion_protection       = false
+      + environment               = "PRESTABLE"
+      + folder_id                 = (known after apply)
+      + health                    = (known after apply)
+      + host_group_ids            = (known after apply)
+      + id                        = (known after apply)
+      + mysql_config              = (known after apply)
+      + name                      = "example"
+      + network_id                = (known after apply)
+      + status                    = (known after apply)
+      + version                   = "8.0"
+
+      + access {
+          + data_lens     = (known after apply)
+          + data_transfer = (known after apply)
+          + web_sql       = (known after apply)
+        }
+
+      + backup_window_start {
+          + hours   = (known after apply)
+          + minutes = (known after apply)
+        }
+
+      + host {
+          + assign_public_ip   = true
+          + fqdn               = (known after apply)
+          + name               = "na-1"
+          + replication_source = (known after apply)
+          + subnet_id          = (known after apply)
+          + zone               = "ru-central1-a"
+        }
+
+      + maintenance_window {
+          + day  = (known after apply)
+          + hour = (known after apply)
+          + type = (known after apply)
+        }
+
+      + performance_diagnostics {
+          + enabled                      = (known after apply)
+          + sessions_sampling_interval   = (known after apply)
+          + statements_sampling_interval = (known after apply)
+        }
+
+      + resources {
+          + disk_size          = 20
+          + disk_type_id       = "network-ssd"
+          + resource_preset_id = "s2.micro"
+        }
+    }
+
+  # module.create_db.yandex_mdb_mysql_database.test-db will be created
+  + resource "yandex_mdb_mysql_database" "test-db" {
+      + cluster_id = (known after apply)
+      + id         = (known after apply)
+      + name       = "test"
+    }
+
+  # module.create_db.yandex_mdb_mysql_user.new-user will be created
+  + resource "yandex_mdb_mysql_user" "new-user" {
+      + authentication_plugin = (known after apply)
+      + cluster_id            = (known after apply)
+      + global_permissions    = (known after apply)
+      + id                    = (known after apply)
+      + name                  = "app"
+      + password              = (sensitive value)
+
+      + connection_limits {
+          + max_connections_per_hour = (known after apply)
+          + max_questions_per_hour   = (known after apply)
+          + max_updates_per_hour     = (known after apply)
+          + max_user_connections     = (known after apply)
+        }
+
+      + permission {
+          + database_name = "test"
+          + roles         = [
+              + "ALL",
+            ]
+        }
+    }
+
+  # module.vpc_dev.yandex_vpc_network.new_vpc will be created
+  + resource "yandex_vpc_network" "new_vpc" {
+      + created_at                = (known after apply)
+      + default_security_group_id = (known after apply)
+      + folder_id                 = (known after apply)
+      + id                        = (known after apply)
+      + labels                    = (known after apply)
+      + name                      = "netology"
+      + subnet_ids                = (known after apply)
+    }
+
+  # module.vpc_dev.yandex_vpc_subnet.new_subnet[0] will be created
+  + resource "yandex_vpc_subnet" "new_subnet" {
+      + created_at     = (known after apply)
+      + folder_id      = (known after apply)
+      + id             = (known after apply)
+      + labels         = (known after apply)
+      + name           = "netology-ru-central1-a"
+      + network_id     = (known after apply)
+      + v4_cidr_blocks = [
+          + "10.0.1.0/24",
+        ]
+      + v6_cidr_blocks = (known after apply)
+      + zone           = "ru-central1-a"
+    }
+
+Plan: 6 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + password = (sensitive value)
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+random_password.password: Creating...
+random_password.password: Creation complete after 0s [id=none]
+module.vpc_dev.yandex_vpc_network.new_vpc: Creating...
+module.vpc_dev.yandex_vpc_network.new_vpc: Creation complete after 1s [id=enpm8dejn7tvistk4ffq]
+module.vpc_dev.yandex_vpc_subnet.new_subnet[0]: Creating...
+module.vpc_dev.yandex_vpc_subnet.new_subnet[0]: Creation complete after 0s [id=e9bf9l44gtopqd6vq4el]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Creating...
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [10s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [20s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [30s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [40s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [50s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [1m0s elapsed]
+...
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [6m0s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [6m10s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [6m20s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still creating... [6m30s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Creation complete after 6m36s [id=c9qjd7m5pt9jbmu1h08b]
+module.create_db.yandex_mdb_mysql_database.test-db: Creating...
+module.create_db.yandex_mdb_mysql_database.test-db: Still creating... [10s elapsed]
+module.create_db.yandex_mdb_mysql_database.test-db: Still creating... [20s elapsed]
+module.create_db.yandex_mdb_mysql_database.test-db: Creation complete after 22s [id=c9qjd7m5pt9jbmu1h08b:test]
+module.create_db.yandex_mdb_mysql_user.new-user: Creating...
+module.create_db.yandex_mdb_mysql_user.new-user: Still creating... [10s elapsed]
+module.create_db.yandex_mdb_mysql_user.new-user: Still creating... [20s elapsed]
+module.create_db.yandex_mdb_mysql_user.new-user: Creation complete after 22s [id=c9qjd7m5pt9jbmu1h08b:app]
+
+Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+password = <sensitive>
+
+```
+
+```bash
+$ yc managed-mysql cluster list
++----------------------+---------+---------------------+--------+---------+
+|          ID          |  NAME   |     CREATED AT      | HEALTH | STATUS  |
++----------------------+---------+---------------------+--------+---------+
+| c9qjd7m5pt9jbmu1h08b | example | 2023-03-31 15:22:02 | ALIVE  | RUNNING |
++----------------------+---------+---------------------+--------+---------+
+
+$ yc managed-mysql hosts list --cluster-id c9qjd7m5pt9jbmu1h08b
++-------------------------------------------+----------------------+--------+--------+---------------+-----------+--------------------+----------+-----------------+
+|                   NAME                    |      CLUSTER ID      |  ROLE  | HEALTH |    ZONE ID    | PUBLIC IP | REPLICATION SOURCE | PRIORITY | BACKUP PRIORITY |
++-------------------------------------------+----------------------+--------+--------+---------------+-----------+--------------------+----------+-----------------+
+| rc1a-mrplewo9xf3worvm.mdb.yandexcloud.net | c9qjd7m5pt9jbmu1h08b | MASTER | ALIVE  | ru-central1-a | true      |                    |        0 |               0 |
++-------------------------------------------+----------------------+--------+--------+---------------+-----------+--------------------+----------+-----------------+
+
+$ yc managed-mysql database list --cluster-id c9qjd7m5pt9jbmu1h08b
++------+----------------------+
+| NAME |      CLUSTER ID      |
++------+----------------------+
+| test | c9qjd7m5pt9jbmu1h08b |
++------+----------------------+
+
+$ yc managed-mysql users list --cluster-id c9qjd7m5pt9jbmu1h08b
++------+-------------+
+| NAME | PERMISSIONS |
++------+-------------+
+| app  | test        |
++------+-------------+
+
+```
+
+меняем переменную HA на true
+
+```terraform
+module "cl_mysql" {
+  source        = "../modules/create_mysql_cluster"
+
+  cluster_name  = "example"
+  network_id    = module.vpc_dev.vpc_id
+  subnet_id     = module.vpc_dev.subnet_id[0]
+  default_zone  = "ru-central1-a"
+  HA            = true
+
+  depends_on    = [module.vpc_dev]
+}
+
+```
+
+```bash
+$ terraform apply
+random_password.password: Refreshing state... [id=none]
+module.vpc_dev.yandex_vpc_network.new_vpc: Refreshing state... [id=enpm8dejn7tvistk4ffq]
+module.vpc_dev.yandex_vpc_subnet.new_subnet[0]: Refreshing state... [id=e9bf9l44gtopqd6vq4el]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Refreshing state... [id=c9qjd7m5pt9jbmu1h08b]
+module.create_db.yandex_mdb_mysql_database.test-db: Refreshing state... [id=c9qjd7m5pt9jbmu1h08b:test]
+module.create_db.yandex_mdb_mysql_user.new-user: Refreshing state... [id=c9qjd7m5pt9jbmu1h08b:app]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql will be updated in-place
+  ~ resource "yandex_mdb_mysql_cluster" "cl_mysql" {
+        id                        = "c9qjd7m5pt9jbmu1h08b"
+        name                      = "example"
+        # (14 unchanged attributes hidden)
+
+      + host {
+          + assign_public_ip = true
+          + name             = "na-2"
+          + subnet_id        = "e9bf9l44gtopqd6vq4el"
+          + zone             = "ru-central1-a"
+        }
+      + host {
+          + assign_public_ip = true
+          + name             = "na-3"
+          + subnet_id        = "e9bf9l44gtopqd6vq4el"
+          + zone             = "ru-central1-a"
+        }
+
+        # (6 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Modifying... [id=c9qjd7m5pt9jbmu1h08b]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 10s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 20s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 30s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 40s elapsed]
+...
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 11m50s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Still modifying... [id=c9qjd7m5pt9jbmu1h08b, 12m0s elapsed]
+module.cl_mysql.yandex_mdb_mysql_cluster.cl_mysql: Modifications complete after 12m4s [id=c9qjd7m5pt9jbmu1h08b]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+
+Outputs:
+
+password = <sensitive>
+
+```
+
+```bash
+$ yc managed-mysql hosts list --cluster-id c9qjd7m5pt9jbmu1h08b
++-------------------------------------------+----------------------+---------+--------+---------------+-----------+--------------------+----------+-----------------+
+|                   NAME                    |      CLUSTER ID      |  ROLE   | HEALTH |    ZONE ID    | PUBLIC IP | REPLICATION SOURCE | PRIORITY | BACKUP PRIORITY |
++-------------------------------------------+----------------------+---------+--------+---------------+-----------+--------------------+----------+-----------------+
+| rc1a-mrplewo9xf3worvm.mdb.yandexcloud.net | c9qjd7m5pt9jbmu1h08b | MASTER  | ALIVE  | ru-central1-a | true      |                    |        0 |               0 |
+| rc1a-tkza4s8evvqcilhb.mdb.yandexcloud.net | c9qjd7m5pt9jbmu1h08b | REPLICA | ALIVE  | ru-central1-a | true      |                    |        0 |               0 |
+| rc1a-w4lvflrosmf5kcnm.mdb.yandexcloud.net | c9qjd7m5pt9jbmu1h08b | REPLICA | ALIVE  | ru-central1-a | true      |                    |        0 |               0 |
++-------------------------------------------+----------------------+---------+--------+---------------+-----------+--------------------+----------+-----------------+
+
+```
+
+![img_1.png](img_1.png)
 
 ### Задание 6***  
 

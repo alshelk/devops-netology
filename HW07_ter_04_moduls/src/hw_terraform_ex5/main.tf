@@ -15,7 +15,7 @@ module "cl_mysql" {
   network_id    = module.vpc_dev.vpc_id
   subnet_id     = module.vpc_dev.subnet_id[0]
   default_zone  = "ru-central1-a"
-  HA            = false
+  HA            = true
 
   depends_on    = [module.vpc_dev]
 }
