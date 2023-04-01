@@ -28,7 +28,7 @@
 ![img.png](img.png)
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template apply
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform apply
 data.template_file.cloudinit: Reading...
 ...
 Plan: 4 to add, 0 to change, 0 to destroy.
@@ -221,7 +221,7 @@ module "vpc_dev" {
 ```
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template-docs markdown table --output-file ./doc.md .
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform-docs markdown table --output-file ./doc.md .
 doc.md updated successfully
 ```
 
@@ -240,7 +240,7 @@ doc.md updated successfully
 1.
 
 ```bash
-$ terraform_template state list
+$ terraform state list
 data.template_file.cloudinit
 null_resource.web_hosts_provision
 module.test-vm.data.yandex_compute_image.my_image
@@ -252,10 +252,10 @@ module.vpc_dev.yandex_vpc_subnet.new_subnet
 2.
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template state rm 'module.vpc_dev.yandex_vpc_network.new_vpc'
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform state rm 'module.vpc_dev.yandex_vpc_network.new_vpc'
 Removed module.vpc_dev.yandex_vpc_network.new_vpc
 Successfully removed 1 resource instance(s).
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template state show 'module.vpc_dev.yandex_vpc_network.new_vpc'
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform state show 'module.vpc_dev.yandex_vpc_network.new_vpc'
 No instance found for the given address!
 
 This command requires that the address references one specific instance.
@@ -267,7 +267,7 @@ the address to reference a specific instance.
 3.
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template import 'module.vpc_dev.yandex_vpc_network.new_vpc' enpdfn9f3or2b3eic9g0
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform import 'module.vpc_dev.yandex_vpc_network.new_vpc' enpdfn9f3or2b3eic9g0
 module.vpc_dev.yandex_vpc_network.new_vpc: Importing from ID "enpdfn9f3or2b3eic9g0"...
 module.vpc_dev.yandex_vpc_network.new_vpc: Import prepared!
   Prepared yandex_vpc_network for import
@@ -282,7 +282,7 @@ Import successful!
 The resources that were imported are shown above. These resources are now in
 your Terraform state and will henceforth be managed by Terraform.
 
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform_template plan
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform$ terraform plan
 module.vpc_dev.yandex_vpc_network.new_vpc: Refreshing state... [id=enpdfn9f3or2b3eic9g0]
 module.test-vm.data.yandex_compute_image.my_image: Reading...
 data.template_file.cloudinit: Reading...
@@ -429,7 +429,7 @@ module "vpc_dev" {
 План:
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex4$ terraform_template plan
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex4$ terraform plan
 data.template_file.cloudinit: Reading...
 data.template_file.cloudinit: Read complete after 0s [id=ebfe5cca7da31de38fd95bb03c6532df96c4c1d0c96bcf6b391471536f7e6b67]
 module.test-vm.data.yandex_compute_image.my_image: Reading...
@@ -721,7 +721,7 @@ module "cl_mysql" {
 ```
 
 ```bash
-$ terraform_template apply
+$ terraform apply
 
 Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
   + create
@@ -952,7 +952,7 @@ module "cl_mysql" {
 ```
 
 ```bash
-$ terraform_template apply
+$ terraform apply
 random_password.password: Refreshing state... [id=none]
 module.vpc_dev.yandex_vpc_network.new_vpc: Refreshing state... [id=enpm8dejn7tvistk4ffq]
 module.vpc_dev.yandex_vpc_subnet.new_subnet[0]: Refreshing state... [id=e9bf9l44gtopqd6vq4el]
@@ -1076,7 +1076,7 @@ CONTAINER ID   IMAGE     COMMAND                  CREATED        STATUS         
 4. [hw_terraform_ex6](src%2Fhw_terraform_ex6)
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform_template apply
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform apply
 data.vault_generic_secret.vault_example: Reading...
 data.vault_generic_secret.vault_example: Read complete after 0s [id=secret/example]
 
@@ -1097,7 +1097,7 @@ Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 Outputs:
 
 vault_example = <sensitive>
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform_template output vault_example
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform output vault_example
 tomap({
   "test" = "congrats!"
 })
@@ -1127,7 +1127,7 @@ resource "vault_generic_secret" "example2" {
 файл vault.json с секретами стоит добавить в .gitignore
 
 ```bash
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform_template apply
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform apply
 data.vault_generic_secret.vault_example: Reading...
 data.vault_generic_secret.vault_example: Read complete after 0s [id=secret/example]
 
@@ -1166,7 +1166,7 @@ Outputs:
 
 vault_example = <sensitive>
 vault_example2 = <sensitive>
-vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform_template output vault_example2
+vagrant@vm1:/netology_data/HW07_ter_04_moduls/src/hw_terraform_ex6$ terraform output vault_example2
 tomap({
   "new_test" = "secret"
   "new_test2" = "secret2"
