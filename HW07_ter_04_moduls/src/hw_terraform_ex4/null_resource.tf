@@ -1,16 +1,6 @@
 resource "null_resource" "web_hosts_provision" {
-#Ждем создания инстанса
+  #Ждем создания инстанса
   depends_on = [module.test-vm]
-
-/*  provisioner "local-exec" {
-    command = "sleep 60"
-  }
-
-#Добавление ПРИВАТНОГО ssh ключа в ssh-agent
-  provisioner "local-exec" {
-    command = "cat ~/.ssh/id_rsa | ssh-add -"
-  }
-*/
 
   connection {
     type        = "ssh"

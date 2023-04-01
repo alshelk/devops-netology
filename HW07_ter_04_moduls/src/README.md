@@ -17,36 +17,36 @@ A utility to generate documentation from Terraform modules in various output for
 macOS users can install using [Homebrew]:
 
 ```bash
-brew install terraform-docs
+brew install terraform_template-docs
 ```
 
 or
 
 ```bash
-brew install terraform-docs/tap/terraform-docs
+brew install terraform_template-docs/tap/terraform_template-docs
 ```
 
 Windows users can install using [Scoop]:
 
 ```bash
-scoop bucket add terraform-docs https://github.com/terraform-docs/scoop-bucket
-scoop install terraform-docs
+scoop bucket add terraform_template-docs https://github.com/terraform-docs/scoop-bucket
+scoop install terraform_template-docs
 ```
 
 or [Chocolatey]:
 
 ```bash
-choco install terraform-docs
+choco install terraform_template-docs
 ```
 
 Stable binaries are also available on the [releases] page. To install, download the
 binary for your platform from "Assets" and place this into your `$PATH`:
 
 ```bash
-curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
-tar -xzf terraform-docs.tar.gz
-chmod +x terraform-docs
-mv terraform-docs /usr/local/terraform-docs
+curl -Lo ./terraform_template-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
+tar -xzf terraform_template-docs.tar.gz
+chmod +x terraform_template-docs
+mv terraform_template-docs /usr/local/terraform_template-docs
 ```
 
 **NOTE:** Windows releases are in `ZIP` format.
@@ -55,12 +55,12 @@ The latest version can be installed using `go install` or `go get`:
 
 ```bash
 # go1.17+
-go install github.com/terraform-docs/terraform-docs@v0.16.0
+go install github.com/terraform_template-docs/terraform_template-docs@v0.16.0
 ```
 
 ```bash
 # go1.16
-GO111MODULE="on" go get github.com/terraform-docs/terraform-docs@v0.16.0
+GO111MODULE="on" go get github.com/terraform_template-docs/terraform_template-docs@v0.16.0
 ```
 
 **NOTE:** please use the latest Go to do this, minimum `go1.16` is required.
@@ -71,7 +71,7 @@ that directory to your `$PATH` as shown [here] or do a manual installation by cl
 the repo and run `make build` from the repository which will put `terraform-docs` in:
 
 ```bash
-$(go env GOPATH)/src/github.com/terraform-docs/terraform-docs/bin/$(uname | tr '[:upper:]' '[:lower:]')-amd64/terraform-docs
+$(go env GOPATH)/src/github.com/terraform_template-docs/terraform_template-docs/bin/$(uname | tr '[:upper:]' '[:lower:]')-amd64/terraform_template-docs
 ```
 
 ## Usage
@@ -81,7 +81,7 @@ $(go env GOPATH)/src/github.com/terraform-docs/terraform-docs/bin/$(uname | tr '
 To run and generate documentation into README within a directory:
 
 ```bash
-terraform-docs markdown table --output-file README.md --output-mode inject /path/to/module
+terraform_template-docs markdown table --output-file README.md --output-mode inject /path/to/module
 ```
 
 Check [`output`] configuration for more details and examples.
@@ -92,14 +92,14 @@ terraform-docs can be run as a container by mounting a directory with `.tf`
 files in it and run the following command:
 
 ```bash
-docker run --rm --volume "$(pwd):/terraform-docs" -u $(id -u) quay.io/terraform-docs/terraform-docs:0.16.0 markdown /terraform-docs
+docker run --rm --volume "$(pwd):/terraform-docs" -u $(id -u) quay.io/terraform_template-docs/terraform_template-docs:0.16.0 markdown /terraform_template-docs
 ```
 
 If `output.file` is not enabled for this module, generated output can be redirected
 back to a file:
 
 ```bash
-docker run --rm --volume "$(pwd):/terraform-docs" -u $(id -u) quay.io/terraform-docs/terraform-docs:0.16.0 markdown /terraform-docs > doc.md
+docker run --rm --volume "$(pwd):/terraform-docs" -u $(id -u) quay.io/terraform_template-docs/terraform_template-docs:0.16.0 markdown /terraform_template-docs > doc.md
 ```
 
 **NOTE:** Docker tag `latest` refers to _latest_ stable released version and `edge`
@@ -111,7 +111,7 @@ To use terraform-docs GitHub Action, configure a YAML workflow file (e.g.
 `.github/workflows/documentation.yml`) with the following:
 
 ```yaml
-name: Generate terraform docs
+name: Generate terraform_template docs
 on:
   - pull_request
 
@@ -123,8 +123,8 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
-    - name: Render terraform docs and push changes back to PR
-      uses: terraform-docs/gh-actions@main
+    - name: Render terraform_template docs and push changes back to PR
+      uses: terraform_template-docs/gh-actions@main
       with:
         working-dir: .
         output-file: README.md
@@ -148,7 +148,7 @@ repos:
   - repo: https://github.com/terraform-docs/terraform-docs
     rev: "v0.16.0"
     hooks:
-      - id: terraform-docs-go
+      - id: terraform_template-docs-go
         args: ["markdown", "table", "--output-file", "README.md", "./mymodule/path"]
 ```
 
