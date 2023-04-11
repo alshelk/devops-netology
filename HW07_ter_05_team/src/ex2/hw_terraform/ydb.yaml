@@ -1,0 +1,42 @@
+id: etnc1jkrhbqjr43pt75s
+folder_id: b1gs8f7ibom6nv7b1qnd
+created_at: "2023-04-11T11:09:34Z"
+name: tfstate-lock
+status: PROVISIONING
+endpoint: grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1g8dbhansmnljtkt5sb/etnc1jkrhbqjr43pt75s
+serverless_database:
+  storage_size_limit: "53687091200"
+location_id: ru-central1
+backup_config:
+  backup_settings:
+    - name: daily
+      backup_schedule:
+        daily_backup_schedule:
+          execute_time:
+            hours: 17
+      backup_time_to_live: 604800s
+      type: SYSTEM
+document_api_endpoint: https://docapi.serverless.yandexcloud.net/ru-central1/b1g8dbhansmnljtkt5sb/etnc1jkrhbqjr43pt75s
+monitoring_config: {}
+
+id: etnmc1fs0odftcsf9mb1
+folder_id: b1gs8f7ibom6nv7b1qnd
+created_at: "2023-04-11T11:21:35Z"
+name: tfstate-lock
+status: PROVISIONING
+endpoint: grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1g8dbhansmnljtkt5sb/etnmc1fs0odftcsf9mb1
+serverless_database:
+  storage_size_limit: "53687091200"
+location_id: ru-central1
+backup_config:
+  backup_settings:
+    - name: daily
+      backup_schedule:
+        daily_backup_schedule:
+          execute_time:
+            hours: 17
+      backup_time_to_live: 604800s
+      type: SYSTEM
+document_api_endpoint: https://docapi.serverless.yandexcloud.net/ru-central1/b1g8dbhansmnljtkt5sb/etnmc1fs0odftcsf9mb1
+monitoring_config: {}
+
