@@ -1,0 +1,21 @@
+id: etno5qhldukf1iuaus5c
+folder_id: b1gs8f7ibom6nv7b1qnd
+created_at: "2023-04-11T21:26:53Z"
+name: tfstate-lock
+status: PROVISIONING
+endpoint: grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1g8dbhansmnljtkt5sb/etno5qhldukf1iuaus5c
+serverless_database:
+  storage_size_limit: "1073741824"
+location_id: ru-central1
+backup_config:
+  backup_settings:
+    - name: daily
+      backup_schedule:
+        daily_backup_schedule:
+          execute_time:
+            hours: 17
+      backup_time_to_live: 604800s
+      type: SYSTEM
+document_api_endpoint: https://docapi.serverless.yandexcloud.net/ru-central1/b1g8dbhansmnljtkt5sb/etno5qhldukf1iuaus5c
+monitoring_config: {}
+
