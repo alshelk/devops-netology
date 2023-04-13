@@ -13,8 +13,6 @@ terraform {
     skip_credentials_validation = true
     dynamodb_endpoint = "https://docapi.serverless.yandexcloud.net/ru-central1/b1g8dbhansmnljtkt5sb/etnmc1fs0odftcsf9mb1"
     dynamodb_table = "tflock-develop"
-    #access_key = "YCAJEwPkqC4eeAJsbx_67zyp1"
-    #secret_key = "YCOj6LeiDZ3foXAbq8dx4E7UZ_E0LcfsiWKLmypK"
   }
   required_version = ">=0.13"
 }

@@ -40,11 +40,3 @@ variable "username" {
   type    = string
   default = "ubuntu"
 }
-
-variable "access_key" {
-  type = string
-}
-
-variable "secret_key" {
-  type = string
-}
