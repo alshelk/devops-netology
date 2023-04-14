@@ -13,7 +13,6 @@ module "test-vm" {
   subnet_zones    = [var.default_zone]
   subnet_ids      = [ module.vpc_dev.subnet_id ]
   instance_name   = "web"
-# instance_count  = 2
   image_family    = "ubuntu-2004-lts"
   public_ip       = true
 

@@ -7,14 +7,14 @@ resource "yandex_iam_service_account" "tfstate" {
 }
 
 # назаначаем права на сервесный аккаунт
-#resource "yandex_resourcemanager_folder_iam_binding" "storage_admin" {
-#  folder_id = var.folder_id
-#  role      = "storage.admin"
-#  members   = [
-#    "serviceAccount:${yandex_iam_service_account.tfstate.id}"
-#  ]
-#  depends_on = [yandex_iam_service_account.tfstate]
-#}
+resource "yandex_resourcemanager_folder_iam_binding" "storage_admin" {
+  folder_id = var.folder_id
+  role      = "storage.admin"
+  members   = [
+    "serviceAccount:${yandex_iam_service_account.tfstate.id}"
+  ]
+  depends_on = [yandex_iam_service_account.tfstate]
+}
 
 resource "yandex_resourcemanager_folder_iam_binding" "ydb_editor" {
   folder_id = var.folder_id
@@ -25,14 +25,14 @@ resource "yandex_resourcemanager_folder_iam_binding" "ydb_editor" {
   depends_on = [yandex_iam_service_account.tfstate]
 }
 
-resource "yandex_resourcemanager_folder_iam_binding" "storage_editor" {
-  folder_id = var.folder_id
-  role      = "storage.editor"
-  members   = [
-    "serviceAccount:${yandex_iam_service_account.tfstate.id}"
-  ]
-  depends_on = [yandex_iam_service_account.tfstate]
-}
+#resource "yandex_resourcemanager_folder_iam_binding" "storage_editor" {
+#  folder_id = var.folder_id
+#  role      = "storage.editor"
+#  members   = [
+#    "serviceAccount:${yandex_iam_service_account.tfstate.id}"
+#  ]
+#  depends_on = [yandex_iam_service_account.tfstate]
+#}
 
 # Создание статического ключа доступа
 resource "yandex_iam_service_account_static_access_key" "tfstate-static-key" {
@@ -54,13 +54,25 @@ resource "yandex_storage_bucket" "tfstate-develop" {
     permissions = ["READ", "WRITE"]
   }
 
-  depends_on = [null_resource.add_storage_admin]
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = yandex_kms_symmetric_key.tfstate-key.id
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+
+  #depends_on = [null_resource.add_storage_admin]
 }
 
-#resource "yandex_ydb_database_serverless" "tfstate-lock" {
-#  name      = "tfstate-lock"
-#  folder_id = var.folder_id
-#}
+resource "yandex_kms_symmetric_key" "tfstate-key" {
+  name              = "tfstate-key"
+  description       = "Key for bucket tfstate develop>"
+  default_algorithm = "AES_128"
+  rotation_period   = "8760h" // 1 year
+}
+
 
 resource "null_resource" "set_token" {
   depends_on = [yandex_iam_service_account.tfstate]
@@ -70,29 +82,29 @@ resource "null_resource" "set_token" {
   }
 }
 
-resource "null_resource" "add_storage_admin" {
-  depends_on = [null_resource.set_token]
-  provisioner "local-exec" {
-    command    = "yc resource-manager folder add-access-binding ${var.folder_id} --role storage.admin --subject serviceAccount:${yandex_iam_service_account.tfstate.id}"
-    on_failure = continue
-  }
-
-  triggers = {
-    always_run         = "${timestamp()}" #всегда т.к. дата и время постоянно изменяются
-  }
-}
-
-resource "null_resource" "del_storage_admin" {
-  depends_on = [yandex_storage_bucket.tfstate-develop]
-  provisioner "local-exec" {
-    command    = "yc resource-manager folder remove-access-binding ${var.folder_id} --role storage.admin --subject serviceAccount:${yandex_iam_service_account.tfstate.id}"
-    on_failure = continue
-  }
-
-  triggers = {
-    always_run         = "${timestamp()}" #всегда т.к. дата и время постоянно изменяются
-  }
-}
+#resource "null_resource" "add_storage_admin" {
+#  depends_on = [null_resource.set_token]
+#  provisioner "local-exec" {
+#    command    = "yc resource-manager folder add-access-binding ${var.folder_id} --role storage.admin --subject serviceAccount:${yandex_iam_service_account.tfstate.id}"
+#    on_failure = continue
+#  }
+#
+#  triggers = {
+#    always_run         = timestamp() #всегда т.к. дата и время постоянно изменяются
+#  }
+#}
+#
+#resource "null_resource" "del_storage_admin" {
+#  depends_on = [yandex_storage_bucket.tfstate-develop]
+#  provisioner "local-exec" {
+#    command    = "yc resource-manager folder remove-access-binding ${var.folder_id} --role storage.admin --subject serviceAccount:${yandex_iam_service_account.tfstate.id}"
+#    on_failure = continue
+#  }
+#
+#  triggers = {
+#    always_run         = timestamp() #всегда т.к. дата и время постоянно изменяются
+#  }
+#}
 
 resource "null_resource" "create_ydb" {
   depends_on = [null_resource.set_token]
@@ -109,7 +121,7 @@ resource "null_resource" "create_ydb" {
   }
 
   triggers = {
-    always_run         = "${timestamp()}" #всегда т.к. дата и время постоянно изменяются
+    always_run         = timestamp() #всегда т.к. дата и время постоянно изменяются
   }
 }
 

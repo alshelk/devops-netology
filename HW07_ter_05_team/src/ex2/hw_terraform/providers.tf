@@ -1,7 +1,14 @@
 terraform {
   required_providers {
     yandex = {
-      source = "yandex-cloud/yandex"
+      source  = "yandex-cloud/yandex"
+      version = "0.89.0"
+    }
+    null = {
+      version = "3.2.1"
+    }
+    template = {
+      version = "2.2.0"
     }
   }
   backend "s3" {
@@ -18,8 +25,10 @@ terraform {
 }
 
 provider "yandex" {
+
   token     = var.token
   cloud_id  = var.cloud_id
   folder_id = var.folder_id
   zone      = var.default_zone
 }
+
