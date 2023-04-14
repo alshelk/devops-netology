@@ -104,7 +104,7 @@ resource "null_resource" "create_ydb" {
 
   provisioner "local-exec" {
     when = destroy
-    command = "yc ydb database delete tfstate-lock && rm ydb.yaml"
+    command = "yc ydb database delete tfstate-lock "
     on_failure = continue
   }
 
