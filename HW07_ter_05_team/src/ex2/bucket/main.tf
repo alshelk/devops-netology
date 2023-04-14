@@ -117,7 +117,3 @@ data "external" "ydb" {
   program = ["bash", "get_ydb.sh"]
   depends_on = [null_resource.create_ydb]
 }
-
-
-#ydb -e grpcs://ydb.serverless.yandexcloud.net:2135 -d /ru-central1/b1g8dbhansmnljtkt5sb/etno5qhldukf1iuaus5c  --yc-token-file token.tfvars yql -s "CREATE TABLE tflock_develop2 (    __Hash Uint64,    LockID Utf8,    __RowData JsonDocument,    PRIMARY KEY (__Hash, LockID))"
-#https://cloud.yandex.com/en-ru/docs/storage/operations/buckets/edit-acl

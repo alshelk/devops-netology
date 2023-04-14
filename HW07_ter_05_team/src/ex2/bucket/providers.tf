@@ -4,6 +4,7 @@ terraform {
       source = "yandex-cloud/yandex"
     }
   }
+
 #   backend "s3" {
 #     endpoint = "storage.yandexcloud.net"
 #     bucket = "tfstate-develop-aps"
