@@ -23,3 +23,5 @@ EOL
 
 #ydb -e grpcs://ydb.serverless.yandexcloud.net:2135 -d /ru-central1/b1g8dbhansmnljtkt5sb/etno5qhldukf1iuaus5c  --yc-token-file token.tfvars yql -s "CREATE TABLE tflock_develop2 (    __Hash Uint64,    LockID Utf8,    __RowData JsonDocument,    PRIMARY KEY (__Hash, LockID))"
 #https://ydb.tech/en/docs/reference/ydb-cli/connect
+#https://cloud.yandex.ru/docs/ydb/docapi/tools/aws-cli/create-table
+
