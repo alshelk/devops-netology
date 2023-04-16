@@ -42,6 +42,11 @@ variable "in_the_end_there_can_be_only_one" {
 
     validation {
         error_message = "There can be only one MacLeod"
-        condition = <проверка>
+        condition = var.in_the_end_there_can_be_only_one.Duncan != var.in_the_end_there_can_be_only_one.Connor
     }
 }
+
+# если возможен вариант, Dunkan = false и Connor = false тогда условие:
+# condition = alltrue([ for k,v in var.in_the_end_there_can_be_only_one : v ]) ? false : true
+# если ктото один должен быть обязательно true, тогда условие :
+#condition = var.in_the_end_there_can_be_only_one.Duncan != var.in_the_end_there_can_be_only_one.Connor
