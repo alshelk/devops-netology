@@ -1,0 +1,10 @@
+name: ex5
+on: workflow_dispatch
+
+jobs:
+  download:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Print to console
+        run: echo Hello GH
+
