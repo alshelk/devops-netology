@@ -10,8 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-#        with:
-#          ref: terraform-ex5
+        with:
+          ref: terraform-ex5
         
       
         
