@@ -700,3 +700,7 @@ variable "in_the_end_there_can_be_only_one" {
 
 1. Настройте любую известную вам CI/CD или замените ее самописным bash/python скриптом.
 2. Скачайте с ее помощью ваш репозиторий с кодом и инициализируйте инфраструктуру.
+
+[CI/CD](https://github.com/alshelk/devops-netology/actions/workflows/ex5.yml)
+
+[ex5.yml](https://github.com/alshelk/devops-netology/blob/main/.github/workflows/ex5.yml)

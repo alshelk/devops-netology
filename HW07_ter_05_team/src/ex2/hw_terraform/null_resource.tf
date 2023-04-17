@@ -5,7 +5,7 @@ resource "null_resource" "web_hosts_provision" {
   connection {
     type        = "ssh"
     user        = var.username
-    private_key = "${file("~/.ssh/id_rsa")}"
+    private_key = file("~/.ssh/id_rsa")
     host        = module.test-vm.external_ip_address[0]
     timeout     = "5m"
   }
@@ -16,9 +16,9 @@ resource "null_resource" "web_hosts_provision" {
   }
 
   triggers = {
-      always_run         = "${timestamp()}" #всегда т.к. дата и время постоянно изменяются
+      always_run         = timestamp() #всегда т.к. дата и время постоянно изменяются
       playbook_src_hash  = file("${abspath(path.module)}/cloud-init.yml") # при изменении содержимого playbook файла
-      ssh_public_key     = "${file("~/.ssh/id_rsa.pub")}" # при изменении переменной
+      ssh_public_key     = file("~/.ssh/id_rsa.pub") # при изменении переменной
   }
 
 }
