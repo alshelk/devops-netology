@@ -10,25 +10,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-       
-      
-        
+
       - name: HashiCorp - Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
-        
-#      - name: Setup TFLint
-#        uses: terraform-linters/setup-tflint@v3.0.0
-        
-#      - name: Checkov GitHub Action
-#        uses: bridgecrewio/checkov-action@v12.1347.0
-        
-      - name: tests
+
+      - name: Checkov GitHub Action
+        uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          directory: ${{ env.tf_path }}
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v3.0.0
+
+      - name: Terraform init
         run: |
-          cd ${{ env.tf_path }} 
-          terraform init -backend-config="bucket=${{ vars.BUCKET }} access_key=${{ secrets.ACCESS_KEY }} secret_key=${{ secrets.SECRET_KEY }} dynamodb_endpoint=${{ vars.DYNAMODB_ENDPOINT }} dynamodb_table=${{ vars.DYNAMODB_TABLE }}" 
-#          tflint --init
-#          tflint -f compact
-#          checkov -d ./
-          
-          
-      
+          cd ${{ env.tf_path }}
+          terraform init -var token=${{ secrets.YC_TOKEN }} -var cloud_id=${{ secrets.CLOUD_ID }} -var folder_id=${{ secrets.FOLDER_ID }} \
+            -backend-config="bucket=${{ vars.BUCKET }}" -backend-config="access_key=${{ secrets.ACCESS_KEY }}" \
+            -backend-config="secret_key=${{ secrets.SECRET_KEY }}" -backend-config="dynamodb_endpoint=${{ vars.DYNAMODB_ENDPOINT }}"\
+            -backend-config="dynamodb_table=${{ vars.DYNAMODB_TABLE }}"
+
+      - name: check
+        run: |
+          tflint --init
+          tflint --chdir=${{ env.tf_path }} -f compact
