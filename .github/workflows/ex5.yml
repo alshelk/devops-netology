@@ -30,10 +30,10 @@ jobs:
             
       - name: check
         run: |
-          cd ${{ env.tf_path }}
+          pwd
           tflint --init
-          tflint -f compact
-          checkov -d ./
+          tflint -f compact tflint --chdir=${{ env.tf_path }}
+          checkov -d ${{ env.tf_path }}
          
           
       
