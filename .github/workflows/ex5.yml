@@ -21,14 +21,7 @@ jobs:
         
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3.0.0        
-        
-      - name: check
-        run: |
-          pwd
-          tflint --init
-          tflint --chdir=${{ env.tf_path }} -f compact
-
-        
+               
       - name: Terraform init
         run: |
           cd ${{ env.tf_path }} 
@@ -36,7 +29,11 @@ jobs:
             -backend-config="bucket=${{ vars.BUCKET }}" -backend-config="access_key=${{ secrets.ACCESS_KEY }}" \
             -backend-config="secret_key=${{ secrets.SECRET_KEY }}" -backend-config="dynamodb_endpoint=${{ vars.DYNAMODB_ENDPOINT }}"\
             -backend-config="dynamodb_table=${{ vars.DYNAMODB_TABLE }}" 
-            
+        
+      - name: check
+        run: |
+          tflint --init
+          tflint --chdir=${{ env.tf_path }} -f compact
 
 
          
