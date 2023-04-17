@@ -25,7 +25,7 @@ jobs:
       - name: tests
         run: |
           cd ${{ env.tf_path }} 
-          terraform init -backend-config="bucket=${{ var.BUCKET }} access_key=${{ ACCESS_KEY }} secret_key=${{ SECRET_KEY }} dynamodb_endpoint=${{ var.DYNAMODB_ENDPOINT }} dynamodb_table=${{ var.DYNAMODB_ENDPOINT }}" 
+          terraform init -backend-config="bucket=${{ secrets.BUCKET }} access_key=${{ secrets.ACCESS_KEY }} secret_key=${{ secrets.SECRET_KEY }} dynamodb_endpoint=${{ secrets.DYNAMODB_ENDPOINT }} dynamodb_table=${{ secrets.DYNAMODB_ENDPOINT }}" 
 #          tflint --init
 #          tflint -f compact
 #          checkov -d ./
