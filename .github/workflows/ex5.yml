@@ -1,6 +1,9 @@
 name: ex5
 on: workflow_dispatch
 
+env:
+  tf_path: HW07_ter_05_team/src/ex2/hw_terraform
+
 jobs:
   terraform:
     runs-on: ubuntu-20.04
@@ -10,10 +13,24 @@ jobs:
 #        with:
 #          ref: terraform-ex5
         
-        
+      
         
       - name: HashiCorp - Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
         
-      - name: info
-        run: ls && pwd
+#      - name: Setup TFLint
+#        uses: terraform-linters/setup-tflint@v3.0.0
+        
+#      - name: Checkov GitHub Action
+#        uses: bridgecrewio/checkov-action@v12.1347.0
+        
+      - name: tests
+        run: |
+          cd ${{ env.tf_path }} 
+          terraform init
+#          tflint --init
+#          tflint -f compact
+#          checkov -d ./
+          
+          
+      
