@@ -2,9 +2,16 @@ name: ex5
 on: workflow_dispatch
 
 jobs:
-  download:
+  terraform:
     runs-on: ubuntu-20.04
     steps:
-      - name: Print to console
-        run: echo Hello GH
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: terraform-ex5
+        
+        
+        
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v2.0.3
 
