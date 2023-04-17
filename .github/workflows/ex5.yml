@@ -13,12 +13,20 @@ jobs:
         
       - name: HashiCorp - Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
-        
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v3.0.0
-        
+            
       - name: Checkov GitHub Action
         uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          directory: ${{ env.tf_path }}
+        
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v3.0.0        
+        
+      - name: check
+        run: |
+          pwd
+          tflint --init
+          tflint -f compact tflint --chdir=${{ env.tf_path }}
         
       - name: Terraform init
         run: |
@@ -28,12 +36,8 @@ jobs:
             -backend-config="secret_key=${{ secrets.SECRET_KEY }}" -backend-config="dynamodb_endpoint=${{ vars.DYNAMODB_ENDPOINT }}"\
             -backend-config="dynamodb_table=${{ vars.DYNAMODB_TABLE }}" 
             
-      - name: check
-        run: |
-          pwd
-          tflint --init
-          tflint -f compact tflint --chdir=${{ env.tf_path }}
-          checkov -d ${{ env.tf_path }}
+
+
          
           
       
