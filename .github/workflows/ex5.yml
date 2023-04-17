@@ -26,7 +26,8 @@ jobs:
         run: |
           pwd
           tflint --init
-          tflint -f compact tflint --chdir=${{ env.tf_path }}
+          tflint --chdir=${{ env.tf_path }} -f compact
+
         
       - name: Terraform init
         run: |
