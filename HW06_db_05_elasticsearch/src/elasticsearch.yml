@@ -1,0 +1,20 @@
+---
+discovery:
+  type: single-node
+
+cluster:
+  name: netology
+
+node:
+  name: netology_test
+
+network:
+  host: 0.0.0.0
+
+path:
+  data: /var/lib/elasticsearch
+  logs: /var/log/elasticsearch
+
+ingest.geoip.downloader.enabled: false
+xpack.security.enabled: false
+path.repo: "/elasticsearch/snapshots"
