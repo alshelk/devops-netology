@@ -530,23 +530,23 @@ ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    s
 
 ```bash
 $ ./run_ansible.sh 
-17fee83fbee0ed8021fa0ceb37b4f25aceb373233c63523d34b2593f13ec39d0
-ffe1e963807a5d18dd5fd176598cf546e8e3437ffc436dc8c1b292ad91342596
-fb689247704b69df7353f1bcc1cbe86b9273edee4d6024dc92fa6efafe48a975
-CONTAINER ID   IMAGE                 COMMAND       CREATED                  STATUS                  PORTS     NAMES
-fb689247704b   pycontribs/fedora     "/bin/bash"   Less than a second ago   Up Less than a second             fedora_last
-ffe1e963807a   pycontribs/centos:7   "/bin/bash"   1 second ago             Up Less than a second             centos7
-17fee83fbee0   pycontribs/ubuntu     "/bin/bash"   1 second ago             Up 1 second                       ubuntu
+ec3c9de8075cdab71c6cea4e5bc82b277c7104b9b410d32d23572e7900e65847
+c6be54b2bf63dcd1548f0525efab379056708ac6cefdd00fa3fa037f3f4203eb
+c92ebaa132c6fa2b8b96750d6916b69b31b22632292a13461a60912a8fb61422
+CONTAINER ID   IMAGE                 COMMAND       CREATED         STATUS                  PORTS     NAMES
+c92ebaa132c6   pycontribs/fedora     "/bin/bash"   1 second ago    Up Less than a second             fedora_last
+c6be54b2bf63   pycontribs/centos:7   "/bin/bash"   1 second ago    Up Less than a second             centos7
+ec3c9de8075c   pycontribs/ubuntu     "/bin/bash"   2 seconds ago   Up 1 second                       ubuntu
 
-PLAY [Print os facts] ************************************************************************************************************************************************************************
+PLAY [Print os facts] *****************************************************************************************************************
 
-TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+TASK [Gathering Facts] ****************************************************************************************************************
 ok: [localhost]
 ok: [ubuntu]
 ok: [fedora_last]
 ok: [centos7]
 
-TASK [Print OS] ******************************************************************************************************************************************************************************
+TASK [Print OS] ***********************************************************************************************************************
 ok: [centos7] => {
     "msg": "CentOS"
 }
@@ -560,7 +560,7 @@ ok: [fedora_last] => {
     "msg": "Fedora"
 }
 
-TASK [Print fact] ****************************************************************************************************************************************************************************
+TASK [Print fact] *********************************************************************************************************************
 ok: [centos7] => {
     "msg": "el default fact"
 }
@@ -574,7 +574,7 @@ ok: [fedora_last] => {
     "msg": "fedora default fact"
 }
 
-PLAY RECAP ***********************************************************************************************************************************************************************************
+PLAY RECAP ****************************************************************************************************************************
 centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
 fedora_last                : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
 localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
@@ -601,21 +601,152 @@ vault_password_file = ./.vault_pass
 $ cat run_ansible.sh 
 #!/usr/bin/env bash
 
-declare -A hosts=([fedora_last]=pycontribs/fedora [centos7]=pycontribs/centos:7 [ubuntu]=pycontribs/ubuntu)
+function dockerrs {
+  declare -A hosts=([fedora_last]=pycontribs/fedora [centos7]=pycontribs/centos:7 [ubuntu]=pycontribs/ubuntu)
+  for h in ${!hosts[@]}; do
+    if [ "$1" = "run" ]; then
+      /usr/bin/docker run --rm -it  -d --name $h ${hosts[$h]}
+    else
+      /usr/bin/docker stop $h
+    fi
+  done
+}
 
-for h in ${!hosts[@]}; do
-  /usr/bin/docker run --rm -it  -d --name $h ${hosts[$h]}
-done
+if [ -n "$1" ]
+then
+  dockerrs $1
+else
+  dockerrs run
+  /usr/bin/docker ps
+  ansible-playbook -i inventory/prod.yml site.yml
+  dockerrs stop
+fi
 
-/usr/bin/docker ps
-
-ansible-playbook -i inventory/prod.yml site.yml
-
-for h in ${!hosts[@]}; do
-  /usr/bin/docker stop $h
-done
+/usr/bin/docker ps -a
 
 ```
+
+Или например так:
+
+```bash
+$ ansible-playbook -i inventory/prod.yml site_run_docker.yml
+
+PLAY [run localhost] ******************************************************************************************************************
+
+TASK [Gathering Facts] ****************************************************************************************************************
+ok: [localhost]
+
+TASK [Run Dockers] ********************************************************************************************************************
+changed: [localhost]
+
+TASK [Run Docker debug] ***************************************************************************************************************
+ok: [localhost] => {
+    "script_output.stdout_lines": [
+        "97297c9329937da1bd46a30cbe07311f543806c2a34259560846ed2ffd78b9cb",
+        "015f327c69ef9c35087b897d1241bc27c22a88c10804dc9c3967c24ebea62bee",
+        "0e216fd131a62aa4e374e0ec999f2710a51451b4e4fa055141e0ba40752bef48",
+        "CONTAINER ID   IMAGE                 COMMAND       CREATED         STATUS                  PORTS     NAMES",
+        "0e216fd131a6   pycontribs/fedora     \"/bin/bash\"   1 second ago    Up Less than a second             fedora_last",
+        "015f327c69ef   pycontribs/centos:7   \"/bin/bash\"   1 second ago    Up Less than a second             centos7",
+        "97297c932993   pycontribs/ubuntu     \"/bin/bash\"   2 seconds ago   Up 1 second                       ubuntu"
+    ]
+}
+
+PLAY [Print os facts] *****************************************************************************************************************
+
+TASK [Gathering Facts] ****************************************************************************************************************
+ok: [localhost]
+ok: [ubuntu]
+ok: [fedora_last]
+ok: [centos7]
+
+TASK [Print OS] ***********************************************************************************************************************
+ok: [centos7] => {
+    "msg": "CentOS"
+}
+ok: [ubuntu] => {
+    "msg": "Ubuntu"
+}
+ok: [localhost] => {
+    "msg": "Ubuntu"
+}
+ok: [fedora_last] => {
+    "msg": "Fedora"
+}
+
+TASK [Print fact] *********************************************************************************************************************
+ok: [centos7] => {
+    "msg": "el default fact"
+}
+ok: [ubuntu] => {
+    "msg": "deb default fact"
+}
+ok: [localhost] => {
+    "msg": "PaSSw0rd"
+}
+ok: [fedora_last] => {
+    "msg": "fedora default fact"
+}
+
+PLAY [run localhost end] **************************************************************************************************************
+
+TASK [Gathering Facts] ****************************************************************************************************************
+ok: [localhost]
+
+TASK [stop Dockers] *******************************************************************************************************************
+changed: [localhost]
+
+TASK [stop Docker debug] **************************************************************************************************************
+ok: [localhost] => {
+    "script_output.stdout_lines": [
+        "ubuntu",
+        "centos7",
+        "fedora_last",
+        "CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES"
+    ]
+}
+
+PLAY RECAP ****************************************************************************************************************************
+centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+fedora_last                : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=9    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
+[site_run_docker.yml](playbook_optional%2Fsite_run_docker.yml):
+
+```bash
+$ cat site_run_docker.yml 
+---
+  - name: run localhost
+    hosts: localhost
+    tasks:
+      - name: Run Dockers
+        shell: "./run_ansible.sh run"
+        register: script_output
+      - name: Run Docker debug
+        debug: var=script_output.stdout_lines
+  - name: Print os facts
+    hosts: all
+    tasks:
+      - name: Print OS
+        debug:
+          msg: "{{ ansible_distribution }}"
+      - name: Print fact
+        debug:
+          msg: "{{ some_fact }}"
+  - name: run localhost end
+    hosts: localhost
+    tasks:
+      - name: stop Dockers
+        shell: "./run_ansible.sh stop"
+        register: script_output
+      - name: stop Docker debug 
+        debug: var=script_output.stdout_lines
+
+```
+
 
 6. Все изменения должны быть зафиксированы и отправлены в ваш личный репозиторий.
 
