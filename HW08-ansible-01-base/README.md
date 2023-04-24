@@ -747,7 +747,8 @@ $ cat site_run_docker.yml
 
 ```
 
-
 6. Все изменения должны быть зафиксированы и отправлены в ваш личный репозиторий.
+
+[playbook_optional](playbook_optional)
 
 ---
