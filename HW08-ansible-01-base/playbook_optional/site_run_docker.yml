@@ -1,0 +1,27 @@
+---
+  - name: run localhost
+    hosts: localhost
+    tasks:
+      - name: Run Dockers
+        shell: "./run_ansible.sh run"
+        register: script_output
+      - name: Run Docker debug
+        debug: var=script_output.stdout_lines
+  - name: Print os facts
+    hosts: all
+    tasks:
+      - name: Print OS
+        debug:
+          msg: "{{ ansible_distribution }}"
+      - name: Print fact
+        debug:
+          msg: "{{ some_fact }}"
+  - name: run localhost end
+    hosts: localhost
+    tasks:
+      - name: stop Dockers
+        shell: "./run_ansible.sh stop"
+        register: script_output
+      - name: stop Docker debug 
+        debug: var=script_output.stdout_lines
+

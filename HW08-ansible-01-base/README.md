@@ -75,9 +75,9 @@ localhost                  : ok=3    changed=0    unreachable=0    failed=0    s
 
 ```bash
 $ docker ps
-CONTAINER ID   IMAGE      COMMAND       CREATED         STATUS         PORTS     NAMES
-644be72d8b77   centos:7   "/bin/bash"   5 minutes ago   Up 5 minutes             centos7
-ec0549e6722d   ubuntu     "/bin/bash"   5 minutes ago   Up 5 minutes             ubuntu
+CONTAINER ID   IMAGE                 COMMAND       CREATED         STATUS                  PORTS     NAMES
+d1a8d738a523   pycontribs/centos:7   "/bin/bash"   1 second ago    Up Less than a second             centos7
+9e251105c38e   pycontribs/ubuntu     "/bin/bash"   2 seconds ago   Up 1 second                       ubuntu
 
 ```
 
@@ -382,10 +382,241 @@ ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    s
 ## Необязательная часть
 
 1. При помощи `ansible-vault` расшифруйте все зашифрованные файлы с переменными.
+
+```bash
+vagrant@vm1:/netology_data/HW08-ansible-01-base/playbook_optional$ ansible-vault decrypt group_vars/deb/examp.yml
+Vault password: 
+Decryption successful
+vagrant@vm1:/netology_data/HW08-ansible-01-base/playbook_optional$ ansible-vault decrypt group_vars/el/examp.yml
+Vault password: 
+Decryption successful
+vagrant@vm1:/netology_data/HW08-ansible-01-base/playbook_optional$ cat group_vars/deb/examp.yml
+---
+  some_fact: "deb default fact"
+vagrant@vm1:/netology_data/HW08-ansible-01-base/playbook_optional$ cat group_vars/el/examp.yml
+---
+  some_fact: "el default fact"
+
+```
+
 2. Зашифруйте отдельное значение `PaSSw0rd` для переменной `some_fact` паролем `netology`. Добавьте полученное значение в `group_vars/all/exmp.yml`.
+
+```bash
+$ ansible-vault encrypt_string
+New Vault password: 
+Confirm New Vault password: 
+Reading plaintext input from stdin. (ctrl-d to end input, twice if your content does not already have a newline)
+PaSSw0rd
+!vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35613961366461626165303663613762633065343966623064633866613931623535346664363639
+          6439613161343839353139336633613539353135613534630a343033613731633332343337666635
+          65653164303935346335346339623438353135653131653137663135346161663335303434346361
+          3433323866613437640a356431663538633434646639626432663636363164353962666439353766
+          6237
+Encryption successful
+
+```
+
+```bash
+$ cat group_vars/all/examp.yml 
+---
+  some_fact: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35613961366461626165303663613762633065343966623064633866613931623535346664363639
+          6439613161343839353139336633613539353135613534630a343033613731633332343337666635
+          65653164303935346335346339623438353135653131653137663135346161663335303434346361
+          3433323866613437640a356431663538633434646639626432663636363164353962666439353766
+          6237
+```
+
 3. Запустите `playbook`, убедитесь, что для нужных хостов применился новый `fact`.
+
+```bash
+$ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+Vault password: 
+
+PLAY [Print os facts] ************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+ok: [localhost]
+ok: [ubuntu]
+ok: [centos7]
+
+TASK [Print OS] ******************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "CentOS"
+}
+ok: [ubuntu] => {
+    "msg": "Ubuntu"
+}
+ok: [localhost] => {
+    "msg": "Ubuntu"
+}
+
+TASK [Print fact] ****************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "el default fact"
+}
+ok: [ubuntu] => {
+    "msg": "deb default fact"
+}
+ok: [localhost] => {
+    "msg": "PaSSw0rd"
+}
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
 4. Добавьте новую группу хостов `fedora`, самостоятельно придумайте для неё переменную. В качестве образа можно использовать [этот вариант](https://hub.docker.com/r/pycontribs/fedora).
+
+[prod.yml](playbook_optional%2Finventory%2Fprod.yml)
+
+[examp.yml](playbook_optional%2Fgroup_vars%2Ffedora%2Fexamp.yml)
+
+```bash
+$ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+Vault password: 
+
+PLAY [Print os facts] ************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+ok: [localhost]
+ok: [fedora_last]
+ok: [ubuntu]
+ok: [centos7]
+
+TASK [Print OS] ******************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "CentOS"
+}
+ok: [ubuntu] => {
+    "msg": "Ubuntu"
+}
+ok: [localhost] => {
+    "msg": "Ubuntu"
+}
+ok: [fedora_last] => {
+    "msg": "Fedora"
+}
+
+TASK [Print fact] ****************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "el default fact"
+}
+ok: [ubuntu] => {
+    "msg": "deb default fact"
+}
+ok: [fedora_last] => {
+    "msg": "fedora default fact"
+}
+ok: [localhost] => {
+    "msg": "PaSSw0rd"
+}
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+fedora_last                : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
 5. Напишите скрипт на bash: автоматизируйте поднятие необходимых контейнеров, запуск ansible-playbook и остановку контейнеров.
+
+```bash
+$ ./run_ansible.sh 
+17fee83fbee0ed8021fa0ceb37b4f25aceb373233c63523d34b2593f13ec39d0
+ffe1e963807a5d18dd5fd176598cf546e8e3437ffc436dc8c1b292ad91342596
+fb689247704b69df7353f1bcc1cbe86b9273edee4d6024dc92fa6efafe48a975
+CONTAINER ID   IMAGE                 COMMAND       CREATED                  STATUS                  PORTS     NAMES
+fb689247704b   pycontribs/fedora     "/bin/bash"   Less than a second ago   Up Less than a second             fedora_last
+ffe1e963807a   pycontribs/centos:7   "/bin/bash"   1 second ago             Up Less than a second             centos7
+17fee83fbee0   pycontribs/ubuntu     "/bin/bash"   1 second ago             Up 1 second                       ubuntu
+
+PLAY [Print os facts] ************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+ok: [localhost]
+ok: [ubuntu]
+ok: [fedora_last]
+ok: [centos7]
+
+TASK [Print OS] ******************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "CentOS"
+}
+ok: [ubuntu] => {
+    "msg": "Ubuntu"
+}
+ok: [localhost] => {
+    "msg": "Ubuntu"
+}
+ok: [fedora_last] => {
+    "msg": "Fedora"
+}
+
+TASK [Print fact] ****************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "el default fact"
+}
+ok: [ubuntu] => {
+    "msg": "deb default fact"
+}
+ok: [localhost] => {
+    "msg": "PaSSw0rd"
+}
+ok: [fedora_last] => {
+    "msg": "fedora default fact"
+}
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+fedora_last                : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+ubuntu
+centos7
+fedora_last
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+```
+
+[ansible.cfg](playbook_optional%2Fansible.cfg):
+
+```bash
+$ cat ansible.cfg 
+[defaults]
+vault_password_file = ./.vault_pass
+```
+
+[run_ansible.sh](playbook_optional%2Frun_ansible.sh):
+
+```bash
+$ cat run_ansible.sh 
+#!/usr/bin/env bash
+
+declare -A hosts=([fedora_last]=pycontribs/fedora [centos7]=pycontribs/centos:7 [ubuntu]=pycontribs/ubuntu)
+
+for h in ${!hosts[@]}; do
+  /usr/bin/docker run --rm -it  -d --name $h ${hosts[$h]}
+done
+
+/usr/bin/docker ps
+
+ansible-playbook -i inventory/prod.yml site.yml
+
+for h in ${!hosts[@]}; do
+  /usr/bin/docker stop $h
+done
+
+```
+
 6. Все изменения должны быть зафиксированы и отправлены в ваш личный репозиторий.
 
 ---
