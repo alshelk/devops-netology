@@ -1,0 +1,10 @@
+---
+
+%{~ for i in webservers ~}
+
+${i["name"]}:
+  hosts:
+    ${i["name"]}-01:
+      ansible_host: ${i["network_interface"][0]["nat_ip_address"]}
+      ansible_user: ${user}
+%{~ endfor ~}

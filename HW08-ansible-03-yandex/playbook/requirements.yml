@@ -1,0 +1,5 @@
+---
+- name: vector-role
+  src: https://github.com/aragastmatb/vector_role.git
+  scm: git
+
