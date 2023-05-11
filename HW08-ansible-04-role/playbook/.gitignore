@@ -1,0 +1,6 @@
+**/roles/*
+inventory/prod.yml
+
+# .tfstate files
+*.tfstate
+*.tfstate.*

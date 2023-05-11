@@ -1,0 +1,7 @@
+---
+- name: restarted vector service
+  become: true
+  ansible.builtin.service:
+    name: vector
+    state: restarted
+  when: not ansible_check_mode

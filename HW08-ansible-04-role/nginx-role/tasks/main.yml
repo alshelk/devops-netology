@@ -1,0 +1,27 @@
+---
+# tasks file for nginx-role
+- block:
+  - name: add repo nginx
+    ansible.builtin.copy:
+      dest: /etc/yum.repos.d/nginx.repo
+      mode: '0755'
+      content: |
+        [nginx]
+        name=nginx repo
+        baseurl=https://nginx.org/packages/centos/$releasever/$basearch/
+        gpgcheck=0
+        enabled=1
+  - name: install nginx
+    ansible.builtin.yum:
+      name: nginx
+      state: latest
+      update_cache: yes
+    when: not ansible_check_mode
+  - name: Configure nginx from template
+    ansible.builtin.template:
+      src: nginx.conf.j2
+      dest: "{{ nginx_config_dir }}/conf.d/default.conf"
+  become: true
+  notify: restarted nginx service
+- name: Flush handlers
+  meta: flush_handlers

@@ -1,0 +1,35 @@
+---
+- name: Install Clickhouse
+  hosts: clickhouse
+  vars:
+    clickhouse_listen_host_custom:
+      - "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
+    clickhouse_dbs_custom:
+      - { name: logs, engine: Log }
+  roles:
+    - role: clickhouse
+  post_tasks:
+    - name: Create table
+      ansible.builtin.command: "clickhouse-client -q 'CREATE TABLE IF NOT EXISTS logs.local_log
+        (file String, hostname String, message String, timestamp DateTime) Engine=Log;'"
+      register: create_table
+      failed_when: create_table.rc != 0 and create_table.rc !=57
+      changed_when: create_table.rc == 0
+      when: not ansible_check_mode
+- name: Install Vector manual
+  hosts: vector
+  vars:
+    ip_clickhouse: "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
+  roles:
+    - role: ../vector-role
+- name: Install lighthouse
+  hosts: lighthouse
+  pre_tasks:
+    - name: install git
+      ansible.builtin.yum:
+        name: git
+        state: latest
+        update_cache: yes
+  roles:
+    - role: ../nginx-role
+    - role: ../lighthouse-role
