@@ -427,7 +427,8 @@ nginx_config_dir: "/etc/nginx"
 
 [Role install vector](https://github.com/alshelk/ansible-role-vector)
 
-[Role install nginx](ttps://github.com/alshelk/ansible-role-nginx)
+[Role install nginx](https://github.com/alshelk/ansible-role-nginx)
+
 
 
 
