@@ -420,4 +420,15 @@ nginx_config_dir: "/etc/nginx"
 10. Выложите playbook в репозиторий.
 11. В ответе дайте ссылки на оба репозитория с roles и одну ссылку на репозиторий с playbook.
 
+
+[playbook](playbook)
+
+[Role install lighthouse](https://github.com/alshelk/ansible-role-lighthouse)
+
+[Role install vector](https://github.com/alshelk/ansible-role-vector)
+
+[Role install nginx](ttps://github.com/alshelk/ansible-role-nginx)
+
+
+
 ---
