@@ -5,7 +5,7 @@
     clickhouse_listen_host_custom:
       - "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
     clickhouse_dbs_custom:
-      - { name: logs, engine: Log }
+      - { name: logs }
   roles:
     - role: clickhouse
   post_tasks:
@@ -21,7 +21,7 @@
   vars:
     ip_clickhouse: "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
   roles:
-    - role: ../vector-role
+    - role: vector
 - name: Install lighthouse
   hosts: lighthouse
   pre_tasks:
@@ -30,6 +30,7 @@
         name: git
         state: latest
         update_cache: yes
+      become: true
   roles:
-    - role: ../nginx-role
-    - role: ../lighthouse-role
+    - role: nginx
+    - role: lighthouse

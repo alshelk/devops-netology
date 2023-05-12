@@ -350,7 +350,73 @@ nginx_config_dir: "/etc/nginx"
 [nginx-role/README.md](nginx-role%2FREADME.md)
 
 8. Выложите все roles в репозитории. Проставьте теги, используя семантическую нумерацию. Добавьте roles в `requirements.yml` в playbook.
+
+[requirements.yml](playbook%2Frequirements.yml):
+
+```yaml
+---
+- src: git@github.com:AlexeySetevoi/ansible-clickhouse.git
+  scm: git
+  version: "1.11.0"
+  name: clickhouse
+- name: vecktor
+  src: git@github.com:alshelk/ansible-role-vector.git
+  scm: git
+  version: "1.0.0"
+- name: lighthose
+  src: git@github.com:alshelk/ansible-role-lighthose.git
+  scm: git
+  version: "1.0.0"
+- name: nginx
+  src: git@github.com:alshelk/ansible-role-nginx.git
+  scm: git
+  version: "1.0.0"
+```
+
 9. Переработайте playbook на использование roles. Не забудьте про зависимости LightHouse и возможности совмещения `roles` с `tasks`.
+
+[site.yml](playbook%2Fsite.yml):
+
+```yaml
+---
+- name: Install Clickhouse
+  hosts: clickhouse
+  vars:
+    clickhouse_listen_host_custom:
+      - "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
+    clickhouse_dbs_custom:
+      - { name: logs }
+  roles:
+    - role: clickhouse
+  post_tasks:
+    - name: Create table
+      ansible.builtin.command: "clickhouse-client -q 'CREATE TABLE IF NOT EXISTS logs.local_log
+        (file String, hostname String, message String, timestamp DateTime) Engine=Log;'"
+      register: create_table
+      failed_when: create_table.rc != 0 and create_table.rc !=57
+      changed_when: create_table.rc == 0
+      when: not ansible_check_mode
+- name: Install Vector manual
+  hosts: vector
+  vars:
+    ip_clickhouse: "{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}"
+  roles:
+    - role: vector
+- name: Install lighthouse
+  hosts: lighthouse
+  pre_tasks:
+    - name: install git
+      ansible.builtin.yum:
+        name: git
+        state: latest
+        update_cache: yes
+      become: true
+  roles:
+    - role: nginx
+    - role: lighthouse
+
+```
+
 10. Выложите playbook в репозиторий.
 11. В ответе дайте ссылки на оба репозитория с roles и одну ссылку на репозиторий с playbook.
 
