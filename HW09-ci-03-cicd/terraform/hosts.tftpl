@@ -1,0 +1,21 @@
+---
+
+all:
+  hosts:
+  %{~ for i in webservers ~}
+    ${i["name"]}:
+      ansible_host: ${i["network_interface"][0]["nat_ip_address"]}
+  %{~ endfor ~}
+  children:
+    sonarqube:
+      hosts:
+        ${webservers[0]["name"]}:
+    nexus:
+      hosts:
+        ${webservers[1]["name"]}:
+    postgres:
+      hosts:
+        ${webservers[0]["name"]}:
+  vars:
+    ansible_connection_type: paramiko
+    ansible_user: ${user}
