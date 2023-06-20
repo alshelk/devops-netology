@@ -205,7 +205,7 @@ while (index < 10):
 
 <details>
 <summary>
-
+Скриншот:
 </summary>
 
 ![img_3.png](img_3.png)
@@ -223,10 +223,46 @@ while (index < 10):
  *    version: 8_282;
  *    classifier: distrib;
  *    type: tar.gz.
-   
+
 2. В него же загрузите такой же артефакт, но с version: 8_102.
 3. Проверьте, что все файлы загрузились успешно.
+
+<details>
+<summary>
+
+</summary>
+
+![img_4.png](img_4.png)
+
+</details>
+
 4. В ответе пришлите файл `maven-metadata.xml` для этого артефекта.
+
+<details>
+<summary>
+Ответ:
+</summary>
+
+[maven-metadata.xml](maven-metadata.xml):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>netology</groupId>
+  <artifactId>java</artifactId>
+  <versioning>
+    <latest>8_282</latest>
+    <release>8_282</release>
+    <versions>
+      <version>8_102</version>
+      <version>8_282</version>
+    </versions>
+    <lastUpdated>20230620130809</lastUpdated>
+  </versioning>
+</metadata>
+```
+
+</details>
 
 ### Знакомство с Maven
 
@@ -235,14 +271,210 @@ while (index < 10):
 1. Скачайте дистрибутив с [maven](https://maven.apache.org/download.cgi).
 2. Разархивируйте, сделайте так, чтобы binary был доступен через вызов в shell (или поменяйте переменную PATH, или любой другой, удобный вам способ).
 3. Удалите из `apache-maven-<version>/conf/settings.xml` упоминание о правиле, отвергающем HTTP- соединение — раздел mirrors —> id: my-repository-http-unblocker.
+
+<details>
+<summary>
+
+</summary>
+
+```bash
+$ cat apache-maven-3.9.2/conf/settings.xml 
+<?xml version="1.0" encoding="UTF-8"?>
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+  
+  <pluginGroups>
+  </pluginGroups>
+
+  <proxies> 
+  </proxies>
+
+  <servers>
+  </servers>
+
+  <mirrors>
+    <mirror>
+      <mirrorOf>external:http:*</mirrorOf>
+      <name>Pseudo repository to mirror external repositories initially using HTTP.</name>
+      <url>http://130.193.50.87:8081/repository/maven-public/</url>
+      <blocked>false</blocked>
+    </mirror>
+  </mirrors>
+
+  <profiles>
+  </profiles>
+
+</settings>
+
+```
+
+</details>
+
 4. Проверьте `mvn --version`.
+
+<details>
+<summary>
+
+</summary>
+
+```bash
+$ mvn --version
+Apache Maven 3.9.2 (c9616018c7a021c1c39be70fb2843d6f5f9b8a1c)
+Maven home: /netology_data/HW09-ci-03-cicd/apache-maven-3.9.2
+Java version: 11.0.19, vendor: Ubuntu, runtime: /usr/lib/jvm/java-11-openjdk-amd64
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "5.4.0-110-generic", arch: "amd64", family: "unix"
+
+```
+
+</details>
+
 5. Заберите директорию [mvn](./mvn) с pom.
 
 ### Основная часть
 
 1. Поменяйте в `pom.xml` блок с зависимостями под ваш артефакт из первого пункта задания для Nexus (java с версией 8_282).
+
+<details>
+<summary>
+
+</summary>
+
+```bash
+$ cat pom.xml 
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+ 
+  <groupId>com.netology.app</groupId>
+  <artifactId>simple-app</artifactId>
+  <version>1.0-SNAPSHOT</version>
+   <repositories>
+    <repository>
+      <id>my-repo</id>
+      <name>maven-public</name>
+      <url>http://130.193.50.87:8081/repository/maven-public/</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>netology</groupId>
+      <artifactId>java</artifactId>
+      <version>8_282</version>
+      <classifier>distrib</classifier>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+</project>
+
+```
+
+</details>
+
+
 2. Запустите команду `mvn package` в директории с `pom.xml`, ожидайте успешного окончания.
+
+<details>
+<summary>
+mvn package:
+
+</summary>
+
+
+```bash
+$ mvn package
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.netology.app:simple-app >---------------------
+[INFO] Building simple-app 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for netology:java:tar.gz:distrib:8_282 is missing, no dependency information available
+[INFO] 
+[INFO] --- resources:3.3.0:resources (default-resources) @ simple-app ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /netology_data/HW09-ci-03-cicd/mvn/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.10.1:compile (default-compile) @ simple-app ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- resources:3.3.0:testResources (default-testResources) @ simple-app ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /netology_data/HW09-ci-03-cicd/mvn/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.10.1:testCompile (default-testCompile) @ simple-app ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.0.0:test (default-test) @ simple-app ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ simple-app ---
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.258 s
+[INFO] Finished at: 2023-06-20T14:53:10Z
+[INFO] ------------------------------------------------------------------------
+
+```
+
+</details>
+
 3. Проверьте директорию `~/.m2/repository/`, найдите ваш артефакт.
+
+<details>
+<summary>
+
+</summary>
+
+```bash
+$ ls ~/.m2/repository/netology/java/8_282/
+java-8_282-distrib.tar.gz  java-8_282-distrib.tar.gz.lastUpdated  java-8_282-distrib.tar.gz.sha1  java-8_282.pom.lastUpdated  _remote.repositories
+
+```
+
+</details>
+
 4. В ответе пришлите исправленный файл `pom.xml`.
+
+<details>
+<summary>
+Ответ:
+</summary>
+
+[pom.xml](mvn%2Fpom.xml):
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+ 
+  <groupId>com.netology.app</groupId>
+  <artifactId>simple-app</artifactId>
+  <version>1.0-SNAPSHOT</version>
+   <repositories>
+    <repository>
+      <id>my-repo</id>
+      <name>maven-public</name>
+      <url>http://130.193.50.87:8081/repository/maven-public/</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>netology</groupId>
+      <artifactId>java</artifactId>
+      <version>8_282</version>
+      <classifier>distrib</classifier>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+</project>
+
+```
+
+</details>
 
 ---
