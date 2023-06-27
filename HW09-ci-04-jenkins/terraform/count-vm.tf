@@ -1,5 +1,5 @@
 resource "yandex_compute_instance" "test" {
-  count = 2
+  count = 4
   name = "${var.vm_less9.vm_name[count.index]}"
   platform_id   = var.vm_common_arg.platform_id
   resources {
