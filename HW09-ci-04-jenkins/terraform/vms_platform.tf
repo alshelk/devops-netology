@@ -13,7 +13,7 @@ variable "vm_less9" {
     core_fraction = number
   })
   default = {
-      vm_name = ["jenkins-master-01", "jenkins-agent-01", "jenkins-master-02", "jenkins-agent-02"],
+      vm_name = ["jenkins-master-01", "jenkins-agent-01"],
       cpu = 2,
       ram = 4,
       disk = 20,

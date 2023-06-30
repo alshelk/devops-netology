@@ -91,60 +91,11 @@
       yum:
         name:
           - git
-          #- python3
+          - python3
           - docker-ce
           - docker-ce-cli
           - containerd.io
         state: present
-# add
-    - name: Install build tools
-      become_user: root
-      yum:
-        name: "@Development tools"
-        state: present
-      become: yes
-    - name: Install some required for python
-      become_user: root
-      yum:
-        name:
-          - wget
-          - openssl-devel
-          - bzip2-devel
-          - libffi-devel
-          - xz-devel
-        state: present
-    - name: Download python3.8
-      ansible.builtin.get_url:
-        url: https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz
-        dest: /tmp/Python-3.8.10.tgz
-    - name: Unarchive python3.8
-      ansible.builtin.unarchive:
-        src: /tmp/Python-3.8.10.tgz
-        dest: /tmp/
-        remote_src: yes
-    - name: install python3.8.10
-      become_user: root
-      ansible.builtin.shell:
-        cmd: ./configure --enable-optimizations && make altinstall
-        chdir: /tmp/Python-3.8.10/
-    - name: set python3.8.10 as the default
-      become_user: root
-      ansible.builtin.shell:
-        cmd: alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.8 1 && alternatives --set python3 /usr/local/bin/python3.8
-        #&& echo "2" | alternatives --config python
-#      args:
-#        executable: /bin/bash
-    - name: Update pip
-      ansible.builtin.shell:
-        cmd: /usr/local/bin/python3.8 -m pip install --upgrade pip
-    - name: set pip3.8 as the default
-      become_user: root
-      ansible.builtin.shell:
-        cmd: alternatives --install /usr/bin/pip3 pip3 /usr/local/bin/pip3.8 1 && alternatives --set pip3 /usr/local/bin/pip3.8
-#    - name: install python3.8.10
-#      become_user: root
-#      ansible.builtin.script: ./installpython.sh
-
     - name: Update pip
       become_user: root
       pip:
@@ -158,10 +109,6 @@
         name:
           - selinux
           - ansible<3.0
-          - requests
-          - urllib3==1.26.6
-          - molecule
-          - molecule-docker
         state: present
     - name: Reinstall Selinux
       become_user: root

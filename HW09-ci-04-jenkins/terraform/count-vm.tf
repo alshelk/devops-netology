@@ -1,5 +1,5 @@
 resource "yandex_compute_instance" "test" {
-  count = 4
+  count = 2
   name = "${var.vm_less9.vm_name[count.index]}"
   platform_id   = var.vm_common_arg.platform_id
   resources {
@@ -24,5 +24,6 @@ resource "yandex_compute_instance" "test" {
   metadata = {
     serial-port-enable = var.vm_metadata.serial-port-enable
     ssh-keys           = "${var.vm_metadata.ssh-user}:${file("~/.ssh/id_rsa.pub")}"
+
   }
 }
