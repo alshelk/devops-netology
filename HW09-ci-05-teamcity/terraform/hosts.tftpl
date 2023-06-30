@@ -1,0 +1,20 @@
+---
+
+all:
+  hosts:
+  %{~ for i in webservers ~}
+    ${i["name"]}:
+      ansible_host: ${i["network_interface"][0]["nat_ip_address"]}
+  %{~ endfor ~}
+  children:
+    jenkins:
+      children:
+        jenkins_masters:
+          hosts:
+            ${webservers[0]["name"]}:
+        jenkins_agents:
+          hosts:
+            ${webservers[1]["name"]}:
+  vars:
+    ansible_connection_type: paramiko
+    ansible_user: ${user}
