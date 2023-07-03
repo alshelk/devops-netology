@@ -4,6 +4,12 @@ variable "vm_web_family" {
   description = "OS family & release"
 }
 
+variable "vm_web_family2" {
+  type        = string
+  default     = "centos-7"
+  description = "OS family & release"
+}
+
 variable "vm_less9" {
   type      = list(object({
     vm_name=string,
@@ -31,6 +37,23 @@ variable "vm_less9" {
       docker-container = "declaration_agent.yml"
     }
   ]
+}
+
+variable "nexus" {
+  type      = object({
+    vm_name=string,
+    cpu=number,
+    ram=number,
+    disk=number,
+    core_fraction = number,
+  })
+  default = {
+    vm_name = "nexus",
+    cpu = 2,
+    ram = 2,
+    disk = 20,
+    core_fraction = 20
+  }
 }
 
 variable "vm_common_arg" {

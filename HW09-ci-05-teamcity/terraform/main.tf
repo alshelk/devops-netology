@@ -12,3 +12,7 @@ data "yandex_compute_image" "container-optimized-image" {
   family = var.vm_web_family
 }
 
+data "yandex_compute_image" "centos" {
+  family = var.vm_web_family2
+}
+

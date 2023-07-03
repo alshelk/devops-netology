@@ -70,3 +70,33 @@ resource "yandex_compute_instance" "agent" {
 
    depends_on = [yandex_compute_instance.server]
 }
+
+resource "yandex_compute_instance" "nexus" {
+
+  name = "${var.nexus.vm_name}"
+  platform_id   = var.vm_common_arg.platform_id
+  resources {
+    cores         = "${var.nexus.cpu}"
+    memory        = "${var.nexus.ram}"
+    core_fraction = "${var.nexus.core_fraction}"
+  }
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.centos.image_id
+      size = "${var.nexus.disk}"
+    }
+  }
+  scheduling_policy {
+    preemptible = var.vm_common_arg.scheduling_policy.preemptible
+  }
+  network_interface {
+    subnet_id = yandex_vpc_subnet.training.id
+    nat = var.vm_common_arg.network_interface.nat
+  }
+  metadata = {
+    serial-port-enable = var.vm_metadata.serial-port-enable
+    ssh-keys           = "${var.vm_metadata.ssh-user}:${file("~/.ssh/id_rsa.pub")}"
+
+  }
+
+}
