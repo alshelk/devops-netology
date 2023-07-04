@@ -2,19 +2,15 @@
 
 all:
   hosts:
-  %{~ for i in webservers ~}
-    ${i["name"]}:
-      ansible_host: ${i["network_interface"][0]["nat_ip_address"]}
-  %{~ endfor ~}
+
+    ${webservers[0]["name"]}:
+      ansible_host: ${webservers[0]["network_interface"][0]["nat_ip_address"]}
+
   children:
-    jenkins:
-      children:
-        jenkins_masters:
-          hosts:
-            ${webservers[0]["name"]}:
-        jenkins_agents:
-          hosts:
-            ${webservers[1]["name"]}:
+    nexus:
+      hosts:
+        ${webservers[0]["name"]}:
   vars:
     ansible_connection_type: paramiko
-    ansible_user: ${user}
+    ansible_user: centos
+

@@ -1,6 +1,6 @@
 resource "yandex_compute_instance" "server" {
 #  count = 2
-  name = "${var.vm_less9[0].vm_name}"
+  name = "${var.vm_less9[0].vm_name}-01"
   platform_id   = var.vm_common_arg.platform_id
   resources {
     cores         = "${var.vm_less9[0].cpu}"
@@ -34,7 +34,7 @@ resource "yandex_compute_instance" "server" {
 
 resource "yandex_compute_instance" "agent" {
 
-  name = "${var.vm_less9[1].vm_name}"
+  name = "${var.vm_less9[1].vm_name}-01"
   platform_id   = var.vm_common_arg.platform_id
   resources {
     cores         = "${var.vm_less9[1].cpu}"
@@ -73,7 +73,7 @@ resource "yandex_compute_instance" "agent" {
 
 resource "yandex_compute_instance" "nexus" {
 
-  name = "${var.nexus.vm_name}"
+  name = "${var.nexus.vm_name}-01"
   platform_id   = var.vm_common_arg.platform_id
   resources {
     cores         = "${var.nexus.cpu}"
@@ -95,7 +95,7 @@ resource "yandex_compute_instance" "nexus" {
   }
   metadata = {
     serial-port-enable = var.vm_metadata.serial-port-enable
-    ssh-keys           = "${var.vm_metadata.ssh-user}:${file("~/.ssh/id_rsa.pub")}"
+    ssh-keys           = "centos:${file("~/.ssh/id_rsa.pub")}"
 
   }
 
