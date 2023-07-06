@@ -1,0 +1,16 @@
+#---
+#
+#all:
+#  hosts:
+#
+#    ${webservers[0]["name"]}:
+#      ansible_host: ${webservers[0]["network_interface"][0]["nat_ip_address"]}
+#
+#  children:
+#    nexus:
+#      hosts:
+#        ${webservers[0]["name"]}:
+#  vars:
+#    ansible_connection_type: paramiko
+#    ansible_user: centos
+#

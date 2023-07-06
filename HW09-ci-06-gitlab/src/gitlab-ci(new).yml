@@ -1,0 +1,47 @@
+stages:
+    - build
+    - deploy
+    - test
+
+image: docker:20.10.5
+services:
+    - docker:20.10.5-dind
+variables:
+    IMAGE_NAME: "hello"
+
+builder:
+    stage: build
+    script:
+        - docker build -t $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA .
+    except:
+        - main
+
+
+deployer:
+    stage: deploy
+    only:
+        - main
+    script:
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+        - docker build -t $CI_REGISTRY/alshelk/netology-ex09-06/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA .
+
+        - IMAGE_ID=$(docker images | grep $CI_REGISTRY/$CI_PROJECT_PATH\/$IMAGE_NAME | awk '{print $3}')
+        - docker tag $IMAGE_ID $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:latest
+
+        - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA
+        - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:latest
+
+tester:
+    stage: test
+    before_script:
+        - apk add --update curl && rm -rf /var/cache/apk/*
+    script:
+        - docker run -it --rm -p 5290:5290 --name python-api  -d $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:latest
+        - sleep 10
+        - curl http://docker:5290/get_info
+
+        - docker ps
+    needs: ["deployer"]
+
+
