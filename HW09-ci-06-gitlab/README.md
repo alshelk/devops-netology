@@ -126,20 +126,33 @@
 Итог:
 </summary>
 
-[gitlab-ci.yml](src%2Fgitlab-ci.yml)
+[gitlab-ci.yml](https://gitlab.com/alshelk/netology-ex09-06/-/blob/5de04c8101777376e85a7b38475e8adbbaf25bb4/.gitlab-ci.yml) 
 
 ```yaml
 stages:
+    - build
     - deploy
+    - test
+
 image: docker:20.10.5
 services:
     - docker:20.10.5-dind
 variables:
     IMAGE_NAME: "hello"
 
+builder:
+    stage: build
+    script:
+        - docker build -t $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA .
+    except:
+        - main
+
+
 deployer:
     stage: deploy
-    script:
+    only:
+        - main
+    script:     
         - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
         - docker build -t $CI_REGISTRY/alshelk/netology-ex09-06/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA .
@@ -150,16 +163,37 @@ deployer:
         - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:gitlab-$CI_COMMIT_SHORT_SHA
         - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:latest
 
+tester:
+    stage: test
+    before_script:
+        - apk add --update curl && rm -rf /var/cache/apk/*
+    script:
+        - docker run -it --rm -p 5290:5290 --name python-api  -d $CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:latest
+        - sleep 10
+        - curl http://docker:5290/get_info
+        
+        - docker ps
+    needs: ["deployer"]
+
 
 ```
 
 
-[Dockerfile](src%2FDockerfile)
+[Dockerfile](https://gitlab.com/alshelk/netology-ex09-06/-/blob/main/Dockerfile)
 
 ```dockerfile
 FROM centos:7
 
-RUN yum install python3 python3-pip -y
+RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+RUN yum install gcc openssl-devel bzip2-devel libffi-devel make wget -y
+
+RUN wget https://www.python.org/ftp/python/3.7.17/Python-3.7.17.tgz
+RUN tar xzf Python-3.7.17.tgz
+RUN cd Python-3.7.17 && ./configure --enable-optimizations && make altinstall
+RUN rm -r Python-3.7.17*
+RUN ln -s /usr/local/bin/python3.7 /usr/bin/python3 && ln -s /usr/local/bin/pip3.7 /usr/bin/pip3
+RUN pip3 install --upgrade wheel setuptools pip
+
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 RUN mkdir /python_api
@@ -361,9 +395,11 @@ Job succeeded
 
 [issuie](https://gitlab.com/alshelk/netology-ex09-06/-/issues/1)
 
-[repository](https://gitlab.com/alshelk/netology-ex09-06.git)
+
 
 </details>
+
+[GitLab](https://gitlab.com/alshelk/netology-ex09-06.git)
 
 ### Важно 
 После выполнения задания выключите и удалите все задействованные ресурсы в Yandex Cloud.
