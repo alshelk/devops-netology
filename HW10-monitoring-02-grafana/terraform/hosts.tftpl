@@ -1,0 +1,21 @@
+---
+
+all:
+  hosts:
+  %{~ for i in webservers ~}
+    ${i["name"]}:
+      ansible_host: ${i["network_interface"][0]["nat_ip_address"]}
+  %{~ endfor ~}
+  children:
+    prometheus:
+      hosts:
+        ${webservers[0]["name"]}:
+    grafana:
+      hosts:
+        ${webservers[1]["name"]}:
+    exporter:
+      hosts:
+        ${webservers[2]["name"]}:
+  vars:
+    ansible_connection_type: paramiko
+    ansible_user: ${user}

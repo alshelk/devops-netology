@@ -1,0 +1,30 @@
+---
+prometheus_config_dir: "/etc/prometheus"
+prometheus_version: "2.46.0"
+home_dir: "/home/centos"
+
+
+#prometheus_config:
+#  data_dir: /var/lib/vector
+#  sources:
+#    sample_file:
+#      type: file
+#      read_from: beginning
+#      ignore_older_secs: 600
+#      include:
+#        - /var/log/**/*.log
+#    vector_log:
+#      type: internal_logs
+#  sinks:
+#    to_clickhouse:
+#      type: clickhouse
+#      inputs:
+#        - sample_file
+#      endpoint: http://{{ hostvars[ 'clickhouse-01' ].ansible_default_ipv4.address }}:8123
+#      database: logs
+#      table: local_log
+##      auth:
+##        password:
+##        user:
+#      skip_unknown_fields: true
+#      compression: gzip
