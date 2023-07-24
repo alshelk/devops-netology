@@ -12,7 +12,7 @@
     - block:
       - name: Get prometheus distrib
         ansible.builtin.get_url:
-          url: "https://github.com/prometheus/prometheus/releases/download/v2.46.0-rc.0/prometheus-{{ prometheus_version }}-rc.0.linux-amd64.tar.gz"
+          url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}-rc.0/prometheus-{{ prometheus_version }}-rc.0.linux-amd64.tar.gz"
           dest: "{{ home_dir }}/prometheus-{{ prometheus_version }}.tar.gz"
       - name: Create unarhive directory
         ansible.builtin.file:
@@ -40,99 +40,117 @@
         ansible.builtin.file:
           path: "/var/lib/prometheus"
           state: directory
+          owner: prometheus
+          group: prometheus
+          mode: '0755'
       - name: Create configuration directory for Prometheus
         ansible.builtin.file:
           path: "{{ prometheus_config_dir }}"
           state: directory
+          owner: prometheus
+          group: prometheus
+          mode: '0755'
       - name: Copy the prometheus files 
         ansible.builtin.copy:
           src: "{{ item.src }}"
           dest: "{{ item.dest }}"
-          owner: root
-          group: root
-          mode: '0644'
+          owner: prometheus
+          group: prometheus
+          mode: '0755'
           remote_src: true
         loop:
           - { src: "{{ home_dir }}/prometheus-{{ prometheus_version }}/prometheus", dest: "/usr/local/bin/"}
           - { src: "{{ home_dir }}/prometheus-{{ prometheus_version }}/promtool", dest: "/usr/local/bin/"}
           - { src: "{{ home_dir }}/prometheus-{{ prometheus_version }}/consoles/", dest: "{{ prometheus_config_dir }}"}
           - { src: "{{ home_dir }}/prometheus-{{ prometheus_version }}/console_libraries/", dest: "{{ prometheus_config_dir }}"}
+      - name: Configure prometheus from template
+        ansible.builtin.template:
+          src: prometheus.yml.j2
+          dest: "{{ prometheus_config_dir }}/prometheus.yml"
+          owner: prometheus
+          group: prometheus
+          mode: 0755
+      - name: Configure prometheus.service from template
+        ansible.builtin.template:
+          src: prometheus.service.j2
+          dest: /etc/systemd/system/prometheus.service
+          mode: 0755
       become: true
+      notify: restarted prometheus service
+    - name: Flush handlers
+      meta: flush_handlers
+
+- name: Install grafana
+  hosts: grafana
+  handlers:
+    - name: restarted grafana service
+      become: true
+      ansible.builtin.service:
+        name: grafana-server
+        state: restarted
+      when: not ansible_check_mode
+  tasks:
+    - name: Install grafana
+      ansible.builtin.yum:
+        name: https://dl.grafana.com/oss/release/grafana-10.0.2-1.x86_64.rpm
+        state: present
+      become: true
+    - name: Enable service grafana
+      ansible.builtin.systemd:
+        name: grafana-server
+        enabled: true
+        masked: no
+      become: true
+      notify: restarted grafana service
+    - name: Flush handlers
+      meta: flush_handlers
+
+- name: Install node_exporter
+  hosts: exporter
+  handlers:
+    - name: restarted node_exporter service
+      become: true
+      ansible.builtin.service:
+        name: node_exporter
+        state: restarted
+      when: not ansible_check_mode
+  tasks:
+    - name: Get node_exporter
+      ansible.builtin.get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+        dest: "{{ home_dir }}/node_exporter-{{ node_exporter_version }}.tar.gz"
+    - name: Create unarhive directory
+      ansible.builtin.file:
+        path: "{{ home_dir }}/node_exporter-{{ node_exporter_version }}"
+        state: directory
+    - name: Extract prometheus
+      ansible.builtin.unarchive:
+        src: "{{ home_dir }}/node_exporter-{{ node_exporter_version }}.tar.gz"
+        dest: "{{ home_dir }}/node_exporter-{{ node_exporter_version }}/"
+        extra_opts: [--strip-components=1]
+        remote_src: yes
+      when: not ansible_check_mode
+    - name: Create directory for node_exporter
+      ansible.builtin.file:
+        path: "{{ work_dir }}"
+        state: directory
+        mode: 0755
+      become: true
+    - name: Copy the prometheus files
+      ansible.builtin.copy:
+        src: "{{ home_dir }}/node_exporter-{{ node_exporter_version }}/node_exporter"
+        dest: "{{ work_dir }}"
+        remote_src: true
+        mode: 0755
+      become: true
+    - name: Copy node_exporter.service
+      ansible.builtin.template:
+        src: node_exporter.service.j2
+        dest: /etc/systemd/system/node_exporter.service
+        mode: 0755
+      become: true
+      notify: restarted node_exporter service
+    - name: Flush handlers
+      meta: flush_handlers
 
 
-#    - block:
-#      - name: Copy prometheus to bin with owner and permissions
-#        ansible.builtin.copy:
-#          src: "{{ home_dir }}/vector-{{ vector_version }}/bin/vector"
-#          dest: /usr/bin/vector
-#          mode: '0755'
-#          remote_src: true
-#        when: not ansible_check_mode
-#      - name: Configure vector.service from template
-#        ansible.builtin.template:
-#          src: vector.service.j2
-#          dest: /etc/systemd/system/vector.service
-#          mode: 0644
-#        tags:
-#          - vector_service
-#      - name: create config dir for vector
-#        ansible.builtin.file:
-#          path: "{{ vector_config_dir }}"
-#          state: directory
-#          mode: 0644
-#      - name: Configure vector from template
-#        ansible.builtin.template:
-#          src: vector.yml.j2
-#          dest: "{{ vector_config_dir }}/vector.yml"
-#          mode: 0644
-#      - name: Create data directory
-#        ansible.builtin.file:
-#          path: "{{ vector_config.data_dir }}"
-#          state: directory
-#      become: true
-#      notify: restarted vector service
-#    - name: Flush handlers
-#      meta: flush_handlers
-#- name: Install lighthouse
-#  hosts: lighthouse
-#  tags: lighthouse
-#  handlers:
-#    - name: restarted nginx service
-#      become: true
-#      ansible.builtin.service:
-#        name: nginx
-#        state: restarted
-#      when: not ansible_check_mode
-#  tasks:
-#    - block:
-#      - name: add repo nginx
-#        ansible.builtin.copy:
-#          dest: /etc/yum.repos.d/nginx.repo
-#          mode: '0755'
-#          content: |
-#            [nginx]
-#            name=nginx repo
-#            baseurl=https://nginx.org/packages/centos/$releasever/$basearch/
-#            gpgcheck=0
-#            enabled=1
-#      - name: install nginx and git
-#        ansible.builtin.yum:
-#          name:
-#            - nginx
-#            - git
-#          state: latest
-#          update_cache: yes
-#        when: not ansible_check_mode
-#      - name: Get lighthouse from git
-#        ansible.builtin.git:
-#          repo: 'https://github.com/VKCOM/lighthouse.git'
-#          dest: "{{ lighthouse_home_dir }}"
-#        when: not ansible_check_mode
-#      - name: Configure nginx from template
-#        ansible.builtin.template:
-#          src: lighthouse.conf.j2
-#          dest: "{{ nginx_config_dir }}/conf.d/default.conf"
-#      become: true
-#      notify: restarted nginx service
-#    - name: Flush handlers
-#      meta: flush_handlers
