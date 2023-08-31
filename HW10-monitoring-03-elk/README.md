@@ -303,6 +303,13 @@ services:
     networks:
       - default
 
+  some_application:
+    image: library/python:3.9-alpine
+    container_name: some_app
+    volumes:
+      - ./pinger/:/opt/
+    entrypoint: python3 /opt/run.py
+
 volumes:
   certs:
     driver: local
@@ -329,9 +336,12 @@ networks:
 
 ```
 input {
-  tcp {
+#   tcp {
+#     port => 12345
+#     codec => json
+#   }
+  beats {
     port => 12345
-    codec => json
   }
 }
 filter{
@@ -444,6 +454,16 @@ MEM_LIMIT=1073741824
 В манифесте директории help также приведенно dummy-приложение, которое генерирует рандомные события в stdout-контейнера.
 Эти логи должны порождать индекс logstash-* в elasticsearch. Если этого индекса нет — воспользуйтесь советами и источниками из раздела «Дополнительные ссылки» этого задания.
  
+<details>
+<summary>
+
+</summary>
+
+![img_6.png](img_6.png)
+
+
+</details>
+
 ---
 
 
