@@ -92,9 +92,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-#      nofile:
-#        soft: 65536
-#        hard: 65536
     ports:
       - ${ES_PORT}:9200
     networks:
@@ -124,7 +121,6 @@ services:
       - ELASTIC_USERNAME=elastic
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#      - xpack.security.enabled=false
       - "http.host=0.0.0.0"
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
@@ -145,9 +141,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-#      nofile:
-#        soft: 65536
-#        hard: 65536
     networks:
       - default
     healthcheck:
@@ -162,10 +155,8 @@ services:
 
   kibana:
     depends_on:
-#      - es-hot
       es-hot:
         condition: service_healthy
-#      - es-warm
       es-warm:
         condition: service_healthy
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
@@ -245,6 +236,13 @@ services:
       - LOGSTASH_HOSTS=http://logstash:9600
     networks:
       - default
+
+  some_application:
+    image: library/python:3.9-alpine
+    container_name: some_app
+    volumes:
+      - ./pinger/:/opt/
+    entrypoint: python3 /opt/run.py
 
 volumes:
   certs:
