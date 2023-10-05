@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: readlogs
+  labels:
+    app: readlogs
+spec:
+  selector:
+    matchLabels:
+      app: readlogs
+  template:
+    metadata:
+      labels:
+        app: readlogs
+    spec:
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool
+        volumeMounts:
+        - name: syslog
+          mountPath: /logs/syslog
+          readOnly: true
+      volumes:
+      - name: syslog
+        hostPath:
+          path: /var/log/syslog
