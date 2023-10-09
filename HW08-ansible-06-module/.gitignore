@@ -1,0 +1,9 @@
+**/roles/*
+**/ansible/*
+**/my_own_collection/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+payload2.json

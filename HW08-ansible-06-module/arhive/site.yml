@@ -1,0 +1,10 @@
+---
+- name: Test module
+  hosts: localhost
+  collections:
+    - my_own_collection.yandex_cloud_elk
+  tasks:
+    - name: Call my_own_module
+      my_own_module:
+        path: "./testfolder/"
+        content: "test module content"
