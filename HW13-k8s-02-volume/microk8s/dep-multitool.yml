@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: less-volume
+  labels:
+    app: less-volume
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: less-volume
+  template:
+    metadata:
+      labels:
+        app: less-volume
+    spec:
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool
+        volumeMounts:
+        - name: vol-nfs
+          mountPath: /mnt
+      volumes:
+      - name: vol-nfs
+        persistentVolumeClaim:
+          claimName: pvc-nfs

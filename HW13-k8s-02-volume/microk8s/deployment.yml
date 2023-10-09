@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: less-volume
+  labels:
+    app: less-volume
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: less-volume
+  template:
+    metadata:
+      labels:
+        app: less-volume
+    spec:
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool
+        volumeMounts:
+        - name: exch
+          mountPath: /input
+      - name: busybox
+        image: busybox
+        command: ['sh', '-c', 'while true; do date >> /output/busybox.log; sleep 5; done;']
+        volumeMounts:
+        - name: exch
+          mountPath: /output
+      volumes:
+      - name: exch
+        persistentVolumeClaim:
+          claimName: pvc-local
