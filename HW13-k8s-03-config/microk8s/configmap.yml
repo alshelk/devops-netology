@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  HTTP_PORT: "1180"
+  HTTPS_PORT: "11443"
+

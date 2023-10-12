@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-index
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Simple page html!</title>
+    </head>
+    <body>
+    <h1>Welcom to test page!</h1>
+    <p>text for example</p>
+
+    <p>text 2 for example</p>
+
+    </body>
+    </html>
