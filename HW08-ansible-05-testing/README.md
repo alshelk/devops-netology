@@ -2151,27 +2151,1062 @@ INFO     Pruning extra files from scenario ephemeral directory
 <details>
 <summary>
 
-assert для lighthouse:
+assert:
 
 </summary>
 
+```bash
+vagrant@vm1:/netology_data/HW08-ansible-05-testing/lighthouse-role$ cat molecule/default/verify.yml 
+---
+- name: Preparation verify vector centos
+  hosts: centos7
+  gather_facts: false
+  tasks:
+    - name: install curl
+      become: true
+      yum:
+        name: curl
+        state: present
+- name: Preparation verify vector centos
+  hosts: centos8
+  gather_facts: false
+  tasks:
+    - name: install curl
+      become: true
+      yum:
+        name: curl
+        state: present
+- name: Preparation verify vector ubuntu
+  hosts: deb
+  gather_facts: false
+  tasks:
+    - name: install curl
+      become: true
+      apt:
+        name: curl
+        state: present
+- name: Verify lighthouse
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Show facts available on the system
+      ansible.builtin.debug:
+        var: ansible_facts.distribution
+    - name: validate config nginx
+      shell: nginx -t
+      register: chk_ngx
+      changed_when: false
+    - name: get title from site
+      shell: curl 'http://localhost' -so - | grep -iPo '(?<=<title>)(.*)(?=</title>)'
+      register: chk_lghths
+      changed_when: false
+    - name: check lighthouse
+      assert:
+        that:
+           - "'syntax is ok' in chk_ngx.stderr"
+           - "'test is successful' in chk_ngx.stderr"
+           - "'LightHouse' in chk_lghths.stdout"
 
+```
+
+```bash
+vagrant@vm1:/netology_data/HW08-ansible-05-testing/lighthouse-role$ molecule test
+INFO     default scenario test matrix: dependency, lint, cleanup, destroy, syntax, create, prepare, converge, idempotence, side_effect, verify, cleanup, destroy
+INFO     Performing prerun...
+INFO     Set ANSIBLE_LIBRARY=/home/vagrant/.cache/ansible-compat/62f098/modules:/home/vagrant/.ansible/plugins/modules:/usr/share/ansible/plugins/modules
+INFO     Set ANSIBLE_COLLECTIONS_PATH=/home/vagrant/.cache/ansible-compat/62f098/collections:/home/vagrant/.ansible/collections:/usr/share/ansible/collections
+INFO     Set ANSIBLE_ROLES_PATH=/home/vagrant/.cache/ansible-compat/62f098/roles:/home/vagrant/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > dependency
+Starting galaxy role install process
+Enter passphrase for key '/home/vagrant/.ssh/id_ed25519': 
+- extracting nginx to /home/vagrant/.cache/molecule/lighthouse-role/default/roles/nginx
+- nginx (1.1.0) was installed successfully
+INFO     Dependency completed successfully.
+WARNING  Skipping, missing the requirements file.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > lint
+INFO     Lint is disabled.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > cleanup
+WARNING  Skipping, cleanup playbook not configured.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > destroy
+INFO     Sanity checks: 'docker'
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item=centos8)
+changed: [localhost] => (item=centos7)
+changed: [localhost] => (item=ubuntu)
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+ok: [localhost] => (item=centos8)
+ok: [localhost] => (item=centos7)
+ok: [localhost] => (item=ubuntu)
+
+TASK [Delete docker networks(s)] ***********************************************
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=1    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > syntax
+
+playbook: /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/converge.yml
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > create
+
+PLAY [Create] ******************************************************************
+
+TASK [Log into a Docker registry] **********************************************
+skipping: [localhost] => (item=None) 
+skipping: [localhost] => (item=None) 
+skipping: [localhost] => (item=None) 
+skipping: [localhost]
+
+TASK [Check presence of custom Dockerfiles] ************************************
+ok: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:8', 'name': 'centos8', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+ok: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+ok: [localhost] => (item={'command': '/sbin/init', 'dockerfile': '../resources/Dockerfile.j2', 'image': 'docker.io/pycontribs/ubuntu:latest', 'name': 'ubuntu', 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Create Dockerfiles from image names] *************************************
+skipping: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:8', 'name': 'centos8', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+skipping: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+changed: [localhost] => (item={'command': '/sbin/init', 'dockerfile': '../resources/Dockerfile.j2', 'image': 'docker.io/pycontribs/ubuntu:latest', 'name': 'ubuntu', 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Discover local Docker images] ********************************************
+ok: [localhost] => (item={'changed': False, 'skipped': True, 'skip_reason': 'Conditional result was False', 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:8', 'name': 'centos8', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item', 'i': 0, 'ansible_index_var': 'i'})
+ok: [localhost] => (item={'changed': False, 'skipped': True, 'skip_reason': 'Conditional result was False', 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item', 'i': 1, 'ansible_index_var': 'i'})
+ok: [localhost] => (item={'diff': [], 'dest': '/home/vagrant/.cache/molecule/lighthouse-role/default/Dockerfile_docker_io_pycontribs_ubuntu_latest', 'src': '/home/vagrant/.ansible/tmp/ansible-tmp-1697811065.7381694-3730780-87647666571682/source', 'md5sum': 'e768dab5c0e9a5291b603e21b2673557', 'checksum': '96262767a5fb8b5e75a2982ddc648befa28ceacd', 'changed': True, 'uid': 1000, 'gid': 1000, 'owner': 'vagrant', 'group': 'vagrant', 'mode': '0600', 'state': 'file', 'size': 503, 'invocation': {'module_args': {'src': '/home/vagrant/.ansible/tmp/ansible-tmp-1697811065.7381694-3730780-87647666571682/source', 'dest': '/home/vagrant/.cache/molecule/lighthouse-role/default/Dockerfile_docker_io_pycontribs_ubuntu_latest', 'mode': '0600', 'follow': False, '_original_basename': 'Dockerfile.j2', 'checksum': '96262767a5fb8b5e75a2982ddc648befa28ceacd', 'backup': False, 'force': True, 'unsafe_writes': False, 'content': None, 'validate': None, 'directory_mode': None, 'remote_src': None, 'local_follow': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'command': '/sbin/init', 'dockerfile': '../resources/Dockerfile.j2', 'image': 'docker.io/pycontribs/ubuntu:latest', 'name': 'ubuntu', 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item', 'i': 2, 'ansible_index_var': 'i'})
+
+TASK [Build an Ansible compatible image (new)] *********************************
+skipping: [localhost] => (item=molecule_local/docker.io/pycontribs/centos:8) 
+skipping: [localhost] => (item=molecule_local/docker.io/pycontribs/centos:7) 
+ok: [localhost] => (item=molecule_local/docker.io/pycontribs/ubuntu:latest)
+
+TASK [Create docker network(s)] ************************************************
+
+TASK [Determine the CMD directives] ********************************************
+ok: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:8', 'name': 'centos8', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+ok: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+ok: [localhost] => (item={'command': '/sbin/init', 'dockerfile': '../resources/Dockerfile.j2', 'image': 'docker.io/pycontribs/ubuntu:latest', 'name': 'ubuntu', 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Create molecule instance(s)] *********************************************
+changed: [localhost] => (item=centos8)
+changed: [localhost] => (item=centos7)
+changed: [localhost] => (item=ubuntu)
+
+TASK [Wait for instance(s) creation to complete] *******************************
+changed: [localhost] => (item={'failed': 0, 'started': 1, 'finished': 0, 'ansible_job_id': '75506895794.3731257', 'results_file': '/home/vagrant/.ansible_async/75506895794.3731257', 'changed': True, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:8', 'name': 'centos8', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+FAILED - RETRYING: [localhost]: Wait for instance(s) creation to complete (300 retries left).
+changed: [localhost] => (item={'failed': 0, 'started': 1, 'finished': 0, 'ansible_job_id': '2585019372.3731323', 'results_file': '/home/vagrant/.ansible_async/2585019372.3731323', 'changed': True, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+changed: [localhost] => (item={'failed': 0, 'started': 1, 'finished': 0, 'ansible_job_id': '466876816279.3731496', 'results_file': '/home/vagrant/.ansible_async/466876816279.3731496', 'changed': True, 'item': {'command': '/sbin/init', 'dockerfile': '../resources/Dockerfile.j2', 'image': 'docker.io/pycontribs/ubuntu:latest', 'name': 'ubuntu', 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=7    changed=3    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0
+
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > prepare
+WARNING  Skipping, prepare playbook not configured.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > converge
+
+PLAY [Converge] ****************************************************************
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+ok: [centos8]
+ok: [ubuntu]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+skipping: [ubuntu]
+changed: [centos8]
+changed: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+skipping: [ubuntu]
+ok: [centos8]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+skipping: [ubuntu]
+changed: [centos8]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [ubuntu]
+changed: [centos8]
+changed: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+skipping: [centos8]
+changed: [ubuntu]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+skipping: [centos8]
+skipping: [ubuntu]
+
+TASK [nginx : Flush handlers] **************************************************
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+changed: [centos8]
+changed: [ubuntu]
+changed: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+changed: [centos7]
+changed: [ubuntu]
+changed: [centos8]
+
+TASK [lighthouse-role : Flush handlers] ****************************************
+
+RUNNING HANDLER [nginx : restarted nginx service] ******************************
+changed: [ubuntu]
+changed: [centos8]
+changed: [centos7]
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=6    changed=5    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+centos8                    : ok=8    changed=6    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0
+ubuntu                     : ok=5    changed=4    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > idempotence
+
+PLAY [Converge] ****************************************************************
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+ok: [centos8]
+ok: [ubuntu]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+skipping: [ubuntu]
+ok: [centos8]
+ok: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+skipping: [ubuntu]
+ok: [centos8]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+skipping: [centos8]
+skipping: [ubuntu]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [ubuntu]
+ok: [centos8]
+ok: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+skipping: [centos8]
+ok: [ubuntu]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+skipping: [centos8]
+skipping: [ubuntu]
+
+TASK [nginx : Flush handlers] **************************************************
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+ok: [centos8]
+ok: [ubuntu]
+ok: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+ok: [centos7]
+ok: [ubuntu]
+ok: [centos8]
+
+TASK [lighthouse-role : Flush handlers] ****************************************
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=5    changed=0    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+centos8                    : ok=6    changed=0    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+ubuntu                     : ok=4    changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Idempotence completed successfully.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > side_effect
+WARNING  Skipping, side effect playbook not configured.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > verify
+INFO     Running Ansible Verifier
+
+PLAY [Preparation verify vector centos] ****************************************
+
+TASK [install curl] ************************************************************
+ok: [centos7]
+
+PLAY [Preparation verify vector centos] ****************************************
+
+TASK [install curl] ************************************************************
+ok: [centos8]
+
+PLAY [Preparation verify vector ubuntu] ****************************************
+
+TASK [install curl] ************************************************************
+changed: [ubuntu]
+
+PLAY [Verify lighthouse] *******************************************************
+
+TASK [Show facts available on the system] **************************************
+ok: [centos7] => {
+    "ansible_facts.distribution": "CentOS"
+}
+ok: [centos8] => {
+    "ansible_facts.distribution": "CentOS"
+}
+ok: [ubuntu] => {
+    "ansible_facts.distribution": "Ubuntu"
+}
+
+TASK [validate config nginx] ***************************************************
+ok: [centos8]
+ok: [ubuntu]
+ok: [centos7]
+
+TASK [get title from site] *****************************************************
+ok: [centos8]
+ok: [centos7]
+ok: [ubuntu]
+
+TASK [check lighthouse] ********************************************************
+ok: [centos7] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+ok: [centos8] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+ok: [ubuntu] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=5    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+centos8                    : ok=5    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+ubuntu                     : ok=5    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Verifier completed successfully.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > cleanup
+WARNING  Skipping, cleanup playbook not configured.
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/hosts.yml linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/hosts
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/group_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/group_vars
+INFO     Inventory /netology_data/HW08-ansible-05-testing/lighthouse-role/molecule/default/../resources/inventory/host_vars/ linked to /home/vagrant/.cache/molecule/lighthouse-role/default/inventory/host_vars
+INFO     Running default > destroy
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item=centos8)
+changed: [localhost] => (item=centos7)
+changed: [localhost] => (item=ubuntu)
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item=centos8)
+changed: [localhost] => (item=centos7)
+changed: [localhost] => (item=ubuntu)
+
+TASK [Delete docker networks(s)] ***********************************************
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+
+INFO     Pruning extra files from scenario ephemeral directory
+
+```
+
+[lighthouse:1.1.0](https://github.com/alshelk/ansible-role-lighthouse/tree/1.1.0)
+
+</details>
+
+<details>
+<summary>
+
+tox:
+
+</summary>
+
+[lighthouse:1.2.0](https://github.com/alshelk/ansible-role-lighthouse/tree/1.2.0)
+
+```bash
+[root@3204d33a1438 lighthouse-role]# cat tox.ini 
+[tox]
+minversion = 1.8
+basepython = python3.6
+envlist = py{37,39}-ansible{210,30}
+skipsdist = true
+
+[testenv]
+passenv = *
+#setenv =
+#    ANSIBLE_ROLES_PATH="/opt"
+deps =
+    -r tox-requirements.txt
+    ansible210: ansible<3.0
+    ansible30: ansible<3.1
+    py39: ansible-compat==2.2.0
+commands =
+    {posargs:molecule test -s light --destroy always}
+[root@3204d33a1438 lighthouse-role]# cat tox-requirements.txt 
+selinux
+ansible-lint==5.1.3
+yamllint==1.26.3
+lxml
+molecule==3.4.0
+molecule_podman
+jmespath
+
+```
+
+```bash
+[root@3204d33a1438 lighthouse-role]# tox
+py37-ansible210 installed: ansible==2.10.7,ansible-base==2.10.17,ansible-compat==1.0.0,ansible-lint==5.1.3,arrow==1.2.3,bcrypt==4.0.1,binaryornot==0.4.4,bracex==2.3.post1,cached-property==1.5.2,Cerberus==1.3.5,certifi==2023.7.22,cffi==1.15.1,chardet==5.2.0,charset-normalizer==3.3.0,click==8.1.7,click-help-colors==0.9.2,cookiecutter==2.4.0,cryptography==41.0.4,distro==1.8.0,enrich==1.2.7,idna==3.4,importlib-metadata==6.7.0,Jinja2==3.1.2,jmespath==1.0.1,lxml==4.9.3,markdown-it-py==2.2.0,MarkupSafe==2.1.3,mdurl==0.1.2,molecule==3.4.0,molecule-podman==1.0.1,packaging==23.2,paramiko==2.12.0,pathspec==0.11.2,pluggy==0.13.1,pycparser==2.21,Pygments==2.16.1,PyNaCl==1.5.0,python-dateutil==2.8.2,python-slugify==8.0.1,PyYAML==5.4.1,requests==2.31.0,rich==13.6.0,ruamel.yaml==0.17.40,ruamel.yaml.clib==0.2.8,selinux==0.2.1,six==1.16.0,subprocess-tee==0.3.5,tenacity==8.2.3,text-unidecode==1.3,typing_extensions==4.7.1,urllib3==2.0.7,wcmatch==8.4.1,yamllint==1.26.3,zipp==3.15.0
+py37-ansible210 run-test-pre: PYTHONHASHSEED='446561352'
+py37-ansible210 run-test: commands[0] | molecule test -s light --destroy always
+INFO     light scenario test matrix: destroy, create, converge, destroy
+INFO     Performing prerun...
+WARNING  Failed to guess project directory using git: 
+INFO     Guessed /opt/lighthouse-role as project root directory
+INFO     Running ansible-galaxy role install --force --roles-path /root/.cache/ansible-lint/bcd488/roles -vr molecule/resources/requirements.yml
+WARNING  Computed fully qualified role name of lighthouse-role does not follow current galaxy requirements.
+Please edit meta/main.yml and assure we can correctly determine full role name:
+
+galaxy_info:
+role_name: my_name  # if absent directory name hosting role is used instead
+namespace: my_galaxy_namespace  # if absent, author is used instead
+
+Namespace: https://galaxy.ansible.com/docs/contributing/namespaces.html#galaxy-namespace-limitations
+Role: https://galaxy.ansible.com/docs/contributing/creating_role.html#role-names
+
+As an alternative, you can add 'role-name' to either skip_list or warn_list.
+
+INFO     Using /root/.cache/ansible-lint/bcd488/roles/lighthouse-role symlink to current repository in order to enable Ansible to find the role using its expected full name.
+INFO     Added ANSIBLE_ROLES_PATH=~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/root/.cache/ansible-lint/bcd488/roles
+INFO     Running light > destroy
+INFO     Sanity checks: 'podman'
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+FAILED - RETRYING: Wait for instance(s) deletion to complete (300 retries left).
+FAILED - RETRYING: Wait for instance(s) deletion to complete (299 retries left).
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '135132101560.5381', 'results_file': '/root/.ansible_async/135132101560.5381', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Running light > create
+
+PLAY [Create] ******************************************************************
+
+TASK [get podman executable path] **********************************************
+ok: [localhost]
+
+TASK [save path to executable as fact] *****************************************
+ok: [localhost]
+
+TASK [Log into a container registry] *******************************************
+skipping: [localhost] => (item="centos7 registry username: None specified") 
+
+TASK [Check presence of custom Dockerfiles] ************************************
+ok: [localhost] => (item=Dockerfile: None specified)
+
+TASK [Create Dockerfiles from image names] *************************************
+skipping: [localhost] => (item="Dockerfile: None specified; Image: docker.io/pycontribs/centos:7") 
+
+TASK [Discover local Podman images] ********************************************
+ok: [localhost] => (item=centos7)
+
+TASK [Build an Ansible compatible image] ***************************************
+skipping: [localhost] => (item=docker.io/pycontribs/centos:7) 
+
+TASK [Determine the CMD directives] ********************************************
+ok: [localhost] => (item="centos7 command: /sbin/init")
+
+TASK [Remove possible pre-existing containers] *********************************
+changed: [localhost]
+
+TASK [Discover local podman networks] ******************************************
+skipping: [localhost] => (item=centos7: None specified) 
+
+TASK [Create podman network dedicated to this scenario] ************************
+skipping: [localhost]
+
+TASK [Create molecule instance(s)] *********************************************
+changed: [localhost] => (item=centos7)
+
+TASK [Wait for instance(s) creation to complete] *******************************
+changed: [localhost] => (item=centos7)
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8    changed=3    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > converge
+
+PLAY [Converge] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [centos7]
+
+TASK [Copy something to test use of synchronize module] ************************
+skipping: [centos7]
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+changed: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+changed: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+changed: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+changed: [centos7]
+
+RUNNING HANDLER [lighthouse-role : restarted nginx service] ********************
+changed: [centos7]
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=7    changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > destroy
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '186669120845.6905', 'results_file': '/root/.ansible_async/186669120845.6905', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Pruning extra files from scenario ephemeral directory
+py37-ansible30 installed: ansible==3.0.0,ansible-base==2.10.17,ansible-compat==1.0.0,ansible-lint==5.1.3,arrow==1.2.3,bcrypt==4.0.1,binaryornot==0.4.4,bracex==2.3.post1,cached-property==1.5.2,Cerberus==1.3.5,certifi==2023.7.22,cffi==1.15.1,chardet==5.2.0,charset-normalizer==3.3.0,click==8.1.7,click-help-colors==0.9.2,cookiecutter==2.4.0,cryptography==41.0.4,distro==1.8.0,enrich==1.2.7,idna==3.4,importlib-metadata==6.7.0,Jinja2==3.1.2,jmespath==1.0.1,lxml==4.9.3,markdown-it-py==2.2.0,MarkupSafe==2.1.3,mdurl==0.1.2,molecule==3.4.0,molecule-podman==1.0.1,packaging==23.2,paramiko==2.12.0,pathspec==0.11.2,pluggy==0.13.1,pycparser==2.21,Pygments==2.16.1,PyNaCl==1.5.0,python-dateutil==2.8.2,python-slugify==8.0.1,PyYAML==5.4.1,requests==2.31.0,rich==13.6.0,ruamel.yaml==0.17.40,ruamel.yaml.clib==0.2.8,selinux==0.2.1,six==1.16.0,subprocess-tee==0.3.5,tenacity==8.2.3,text-unidecode==1.3,typing_extensions==4.7.1,urllib3==2.0.7,wcmatch==8.4.1,yamllint==1.26.3,zipp==3.15.0
+py37-ansible30 run-test-pre: PYTHONHASHSEED='446561352'
+py37-ansible30 run-test: commands[0] | molecule test -s light --destroy always
+INFO     light scenario test matrix: destroy, create, converge, destroy
+INFO     Performing prerun...
+WARNING  Failed to guess project directory using git: 
+INFO     Guessed /opt/lighthouse-role as project root directory
+INFO     Running ansible-galaxy role install --force --roles-path /root/.cache/ansible-lint/bcd488/roles -vr molecule/resources/requirements.yml
+WARNING  Computed fully qualified role name of lighthouse-role does not follow current galaxy requirements.
+Please edit meta/main.yml and assure we can correctly determine full role name:
+
+galaxy_info:
+role_name: my_name  # if absent directory name hosting role is used instead
+namespace: my_galaxy_namespace  # if absent, author is used instead
+
+Namespace: https://galaxy.ansible.com/docs/contributing/namespaces.html#galaxy-namespace-limitations
+Role: https://galaxy.ansible.com/docs/contributing/creating_role.html#role-names
+
+As an alternative, you can add 'role-name' to either skip_list or warn_list.
+
+INFO     Using /root/.cache/ansible-lint/bcd488/roles/lighthouse-role symlink to current repository in order to enable Ansible to find the role using its expected full name.
+INFO     Added ANSIBLE_ROLES_PATH=~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/root/.cache/ansible-lint/bcd488/roles
+INFO     Running light > destroy
+INFO     Sanity checks: 'podman'
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '2194034059.7033', 'results_file': '/root/.ansible_async/2194034059.7033', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Running light > create
+
+PLAY [Create] ******************************************************************
+
+TASK [get podman executable path] **********************************************
+ok: [localhost]
+
+TASK [save path to executable as fact] *****************************************
+ok: [localhost]
+
+TASK [Log into a container registry] *******************************************
+skipping: [localhost] => (item="centos7 registry username: None specified") 
+
+TASK [Check presence of custom Dockerfiles] ************************************
+ok: [localhost] => (item=Dockerfile: None specified)
+
+TASK [Create Dockerfiles from image names] *************************************
+skipping: [localhost] => (item="Dockerfile: None specified; Image: docker.io/pycontribs/centos:7") 
+
+TASK [Discover local Podman images] ********************************************
+ok: [localhost] => (item=centos7)
+
+TASK [Build an Ansible compatible image] ***************************************
+skipping: [localhost] => (item=docker.io/pycontribs/centos:7) 
+
+TASK [Determine the CMD directives] ********************************************
+ok: [localhost] => (item="centos7 command: /sbin/init")
+
+TASK [Remove possible pre-existing containers] *********************************
+changed: [localhost]
+
+TASK [Discover local podman networks] ******************************************
+skipping: [localhost] => (item=centos7: None specified) 
+
+TASK [Create podman network dedicated to this scenario] ************************
+skipping: [localhost]
+
+TASK [Create molecule instance(s)] *********************************************
+changed: [localhost] => (item=centos7)
+
+TASK [Wait for instance(s) creation to complete] *******************************
+changed: [localhost] => (item=centos7)
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8    changed=3    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > converge
+
+PLAY [Converge] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [centos7]
+
+TASK [Copy something to test use of synchronize module] ************************
+skipping: [centos7]
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+changed: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+changed: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+changed: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+changed: [centos7]
+
+RUNNING HANDLER [lighthouse-role : restarted nginx service] ********************
+changed: [centos7]
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=7    changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > destroy
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '369063031423.8505', 'results_file': '/root/.ansible_async/369063031423.8505', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Pruning extra files from scenario ephemeral directory
+py39-ansible210 installed: ansible==2.10.7,ansible-base==2.10.17,ansible-compat==2.2.0,ansible-lint==5.1.3,arrow==1.3.0,attrs==23.1.0,bcrypt==4.0.1,binaryornot==0.4.4,bracex==2.4,Cerberus==1.3.5,certifi==2023.7.22,cffi==1.16.0,chardet==5.2.0,charset-normalizer==3.3.0,click==8.1.7,click-help-colors==0.9.2,cookiecutter==2.4.0,cryptography==41.0.4,distro==1.8.0,enrich==1.2.7,idna==3.4,Jinja2==3.1.2,jmespath==1.0.1,jsonschema==4.19.1,jsonschema-specifications==2023.7.1,lxml==4.9.3,markdown-it-py==3.0.0,MarkupSafe==2.1.3,mdurl==0.1.2,molecule==3.4.0,molecule-podman==1.0.1,packaging==23.2,paramiko==2.12.0,pathspec==0.11.2,pluggy==0.13.1,pycparser==2.21,Pygments==2.16.1,PyNaCl==1.5.0,python-dateutil==2.8.2,python-slugify==8.0.1,PyYAML==5.4.1,referencing==0.30.2,requests==2.31.0,rich==13.6.0,rpds-py==0.10.6,ruamel.yaml==0.17.40,ruamel.yaml.clib==0.2.8,selinux==0.3.0,six==1.16.0,subprocess-tee==0.4.1,tenacity==8.2.3,text-unidecode==1.3,types-python-dateutil==2.8.19.14,urllib3==2.0.7,wcmatch==8.5,yamllint==1.26.3
+py39-ansible210 run-test-pre: PYTHONHASHSEED='446561352'
+py39-ansible210 run-test: commands[0] | molecule test -s light --destroy always
+INFO     light scenario test matrix: destroy, create, converge, destroy
+INFO     Performing prerun...
+WARNING  Failed to guess project directory using git: 
+INFO     Guessed /opt/lighthouse-role as project root directory
+INFO     Running ansible-galaxy role install --force --roles-path /root/.cache/ansible-lint/bcd488/roles -vr molecule/resources/requirements.yml
+WARNING  Computed fully qualified role name of lighthouse-role does not follow current galaxy requirements.
+Please edit meta/main.yml and assure we can correctly determine full role name:
+
+galaxy_info:
+role_name: my_name  # if absent directory name hosting role is used instead
+namespace: my_galaxy_namespace  # if absent, author is used instead
+
+Namespace: https://galaxy.ansible.com/docs/contributing/namespaces.html#galaxy-namespace-limitations
+Role: https://galaxy.ansible.com/docs/contributing/creating_role.html#role-names
+
+As an alternative, you can add 'role-name' to either skip_list or warn_list.
+
+INFO     Using /root/.cache/ansible-lint/bcd488/roles/lighthouse-role symlink to current repository in order to enable Ansible to find the role using its expected full name.
+INFO     Added ANSIBLE_ROLES_PATH=~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/root/.cache/ansible-lint/bcd488/roles
+INFO     Running light > destroy
+INFO     Sanity checks: 'podman'
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '936695884828.8616', 'results_file': '/root/.ansible_async/936695884828.8616', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Running light > create
+
+PLAY [Create] ******************************************************************
+
+TASK [get podman executable path] **********************************************
+ok: [localhost]
+
+TASK [save path to executable as fact] *****************************************
+ok: [localhost]
+
+TASK [Log into a container registry] *******************************************
+skipping: [localhost] => (item="centos7 registry username: None specified") 
+
+TASK [Check presence of custom Dockerfiles] ************************************
+ok: [localhost] => (item=Dockerfile: None specified)
+
+TASK [Create Dockerfiles from image names] *************************************
+skipping: [localhost] => (item="Dockerfile: None specified; Image: docker.io/pycontribs/centos:7") 
+
+TASK [Discover local Podman images] ********************************************
+ok: [localhost] => (item=centos7)
+
+TASK [Build an Ansible compatible image] ***************************************
+skipping: [localhost] => (item=docker.io/pycontribs/centos:7) 
+
+TASK [Determine the CMD directives] ********************************************
+ok: [localhost] => (item="centos7 command: /sbin/init")
+
+TASK [Remove possible pre-existing containers] *********************************
+changed: [localhost]
+
+TASK [Discover local podman networks] ******************************************
+skipping: [localhost] => (item=centos7: None specified) 
+
+TASK [Create podman network dedicated to this scenario] ************************
+skipping: [localhost]
+
+TASK [Create molecule instance(s)] *********************************************
+changed: [localhost] => (item=centos7)
+
+TASK [Wait for instance(s) creation to complete] *******************************
+changed: [localhost] => (item=centos7)
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8    changed=3    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > converge
+
+PLAY [Converge] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [centos7]
+
+TASK [Copy something to test use of synchronize module] ************************
+skipping: [centos7]
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+changed: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+changed: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+changed: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+changed: [centos7]
+
+RUNNING HANDLER [lighthouse-role : restarted nginx service] ********************
+changed: [centos7]
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=7    changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > destroy
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '491144545603.10053', 'results_file': '/root/.ansible_async/491144545603.10053', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Pruning extra files from scenario ephemeral directory
+py39-ansible30 installed: ansible==3.0.0,ansible-base==2.10.17,ansible-compat==2.2.0,ansible-lint==5.1.3,arrow==1.3.0,attrs==23.1.0,bcrypt==4.0.1,binaryornot==0.4.4,bracex==2.4,Cerberus==1.3.5,certifi==2023.7.22,cffi==1.16.0,chardet==5.2.0,charset-normalizer==3.3.0,click==8.1.7,click-help-colors==0.9.2,cookiecutter==2.4.0,cryptography==41.0.4,distro==1.8.0,enrich==1.2.7,idna==3.4,Jinja2==3.1.2,jmespath==1.0.1,jsonschema==4.19.1,jsonschema-specifications==2023.7.1,lxml==4.9.3,markdown-it-py==3.0.0,MarkupSafe==2.1.3,mdurl==0.1.2,molecule==3.4.0,molecule-podman==1.0.1,packaging==23.2,paramiko==2.12.0,pathspec==0.11.2,pluggy==0.13.1,pycparser==2.21,Pygments==2.16.1,PyNaCl==1.5.0,python-dateutil==2.8.2,python-slugify==8.0.1,PyYAML==5.4.1,referencing==0.30.2,requests==2.31.0,rich==13.6.0,rpds-py==0.10.6,ruamel.yaml==0.17.40,ruamel.yaml.clib==0.2.8,selinux==0.3.0,six==1.16.0,subprocess-tee==0.4.1,tenacity==8.2.3,text-unidecode==1.3,types-python-dateutil==2.8.19.14,urllib3==2.0.7,wcmatch==8.5,yamllint==1.26.3
+py39-ansible30 run-test-pre: PYTHONHASHSEED='446561352'
+py39-ansible30 run-test: commands[0] | molecule test -s light --destroy always
+INFO     light scenario test matrix: destroy, create, converge, destroy
+INFO     Performing prerun...
+WARNING  Failed to guess project directory using git: 
+INFO     Guessed /opt/lighthouse-role as project root directory
+INFO     Running ansible-galaxy role install --force --roles-path /root/.cache/ansible-lint/bcd488/roles -vr molecule/resources/requirements.yml
+WARNING  Computed fully qualified role name of lighthouse-role does not follow current galaxy requirements.
+Please edit meta/main.yml and assure we can correctly determine full role name:
+
+galaxy_info:
+role_name: my_name  # if absent directory name hosting role is used instead
+namespace: my_galaxy_namespace  # if absent, author is used instead
+
+Namespace: https://galaxy.ansible.com/docs/contributing/namespaces.html#galaxy-namespace-limitations
+Role: https://galaxy.ansible.com/docs/contributing/creating_role.html#role-names
+
+As an alternative, you can add 'role-name' to either skip_list or warn_list.
+
+INFO     Using /root/.cache/ansible-lint/bcd488/roles/lighthouse-role symlink to current repository in order to enable Ansible to find the role using its expected full name.
+INFO     Added ANSIBLE_ROLES_PATH=~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/root/.cache/ansible-lint/bcd488/roles
+INFO     Running light > destroy
+INFO     Sanity checks: 'podman'
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '442341212164.10157', 'results_file': '/root/.ansible_async/442341212164.10157', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Running light > create
+
+PLAY [Create] ******************************************************************
+
+TASK [get podman executable path] **********************************************
+ok: [localhost]
+
+TASK [save path to executable as fact] *****************************************
+ok: [localhost]
+
+TASK [Log into a container registry] *******************************************
+skipping: [localhost] => (item="centos7 registry username: None specified") 
+
+TASK [Check presence of custom Dockerfiles] ************************************
+ok: [localhost] => (item=Dockerfile: None specified)
+
+TASK [Create Dockerfiles from image names] *************************************
+skipping: [localhost] => (item="Dockerfile: None specified; Image: docker.io/pycontribs/centos:7") 
+
+TASK [Discover local Podman images] ********************************************
+ok: [localhost] => (item=centos7)
+
+TASK [Build an Ansible compatible image] ***************************************
+skipping: [localhost] => (item=docker.io/pycontribs/centos:7) 
+
+TASK [Determine the CMD directives] ********************************************
+ok: [localhost] => (item="centos7 command: /sbin/init")
+
+TASK [Remove possible pre-existing containers] *********************************
+changed: [localhost]
+
+TASK [Discover local podman networks] ******************************************
+skipping: [localhost] => (item=centos7: None specified) 
+
+TASK [Create podman network dedicated to this scenario] ************************
+skipping: [localhost]
+
+TASK [Create molecule instance(s)] *********************************************
+changed: [localhost] => (item=centos7)
+
+TASK [Wait for instance(s) creation to complete] *******************************
+changed: [localhost] => (item=centos7)
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8    changed=3    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > converge
+
+PLAY [Converge] ****************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [centos7]
+
+TASK [Copy something to test use of synchronize module] ************************
+skipping: [centos7]
+
+TASK [Include nginx-role] ******************************************************
+
+TASK [nginx : Setting host facts] **********************************************
+ok: [centos7]
+
+TASK [nginx : add repo nginx in RedHat] ****************************************
+changed: [centos7]
+
+TASK [nginx : check repo CentOS] ***********************************************
+skipping: [centos7]
+
+TASK [nginx : Replace CentOS repo] *********************************************
+skipping: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+changed: [centos7]
+
+TASK [nginx : install nginx] ***************************************************
+skipping: [centos7]
+
+TASK [nginx : Configure nginx from template] ***********************************
+skipping: [centos7]
+
+TASK [Include lighthouse-role] *************************************************
+
+TASK [lighthouse-role : Get lighthouse from git] *******************************
+changed: [centos7]
+
+TASK [lighthouse-role : Configure nginx for lighthouse] ************************
+changed: [centos7]
+
+RUNNING HANDLER [lighthouse-role : restarted nginx service] ********************
+changed: [centos7]
+
+PLAY RECAP *********************************************************************
+centos7                    : ok=7    changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+
+INFO     Running light > destroy
+
+PLAY [Destroy] *****************************************************************
+
+TASK [Destroy molecule instance(s)] ********************************************
+changed: [localhost] => (item={'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']})
+
+TASK [Wait for instance(s) deletion to complete] *******************************
+changed: [localhost] => (item={'started': 1, 'finished': 0, 'ansible_job_id': '788693725026.11603', 'results_file': '/root/.ansible_async/788693725026.11603', 'changed': True, 'failed': False, 'item': {'command': '/sbin/init', 'image': 'docker.io/pycontribs/centos:7', 'name': 'centos7', 'pre_build_image': True, 'privileged': True, 'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup']}, 'ansible_loop_var': 'item'})
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+INFO     Pruning extra files from scenario ephemeral directory
+__________________________________________________________________________________________ summary ___________________________________________________________________________________________
+  py37-ansible210: commands succeeded
+  py37-ansible30: commands succeeded
+  py39-ansible210: commands succeeded
+  py39-ansible30: commands succeeded
+  congratulations :)
+[root@3204d33a1438 lighthouse-role]# 
+```
 
 </details>
 
 </details>
 
 2. Создайте сценарий внутри любой из своих ролей, который умеет поднимать весь стек при помощи всех ролей.
-3. Убедитесь в работоспособности своего стека. Создайте отдельный verify.yml, который будет проверять работоспособность интеграции всех инструментов между ними.
-4. Выложите свои roles в репозитории.
-
-В качестве решения пришлите ссылки и скриншоты этапов выполнения задания.
 
 <details>
 <summary>
 
 </summary>
 
+К сожалению не успел доделать к временному ограничению.
+
 </details>
+
+3. Убедитесь в работоспособности своего стека. Создайте отдельный verify.yml, который будет проверять работоспособность интеграции всех инструментов между ними.
+4. Выложите свои roles в репозитории.
+
+В качестве решения пришлите ссылки и скриншоты этапов выполнения задания.
+
 
 ---
