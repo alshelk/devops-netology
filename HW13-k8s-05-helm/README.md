@@ -223,7 +223,7 @@ vagrant@vm1:/netology_data/HW13-k8s-05-helm$ kubectl get deployments
 NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
 dep-frontend-my-app   1/1     1            1           19m
 dep-backend-my-app    1/1     1            1           19m
-
+     
 ```
 
 В переменных чарта измените образ приложения для изменения версии:
@@ -245,6 +245,23 @@ my-app1	default  	1       	2023-11-05 18:53:18.329187696 +0000 UTC	deployed	app-
 
 ![img_2.png](img_2.png)
 
+```bash
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm package app-chart/
+Successfully packaged chart and saved it to: /netology_data/HW13-k8s-05-helm/app-chart-0.1.0.tgz
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ ls
+app-chart  app-chart-0.1.0.tgz  img_1.png  img_2.png  img.png  my-app  README.md
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install app4 app-chart-0.1.0.tgz 
+NAME: app4
+LAST DEPLOYED: Sun Nov  5 20:24:34 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm list
+NAME	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART          	APP VERSION
+app4	default  	1       	2023-11-05 20:24:34.087281482 +0000 UTC	deployed	app-chart-0.1.0	1.16.0
+```
+
 [app-chart](app-chart)
 
 </details>
@@ -262,47 +279,52 @@ my-app1	default  	1       	2023-11-05 18:53:18.329187696 +0000 UTC	deployed	app-
 </summary>
 
 ```bash
-vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp1 app-chart/ --create-namespace --namespace app1
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp1 app-chart-0.1.0.tgz --create-namespace --namespace app1
 NAME: myapp1
-LAST DEPLOYED: Sun Nov  5 19:56:09 2023
+LAST DEPLOYED: Sun Nov  5 20:28:17 2023
 NAMESPACE: app1
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm list -n app1
 NAME  	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART          	APP VERSION
-myapp1	app1     	1       	2023-11-05 19:56:09.477875692 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
-vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp2 app-chart/ --namespace app1
+myapp1	app1     	1       	2023-11-05 20:28:17.987641383 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp2 app-chart-0.1.0.tgz  --namespace app1
 NAME: myapp2
-LAST DEPLOYED: Sun Nov  5 19:56:24 2023
+LAST DEPLOYED: Sun Nov  5 20:28:45 2023
 NAMESPACE: app1
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
-vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm list -n app1
-NAME  	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART          	APP VERSION
-myapp1	app1     	1       	2023-11-05 19:56:09.477875692 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
-myapp2	app1     	1       	2023-11-05 19:56:24.144880594 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
-vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp3 app-chart/ --create-namespace --namespace app2
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm install myapp3 app-chart-0.1.0.tgz  --namespace app2
 NAME: myapp3
-LAST DEPLOYED: Sun Nov  5 19:56:50 2023
+LAST DEPLOYED: Sun Nov  5 20:28:55 2023
 NAMESPACE: app2
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
-vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm list -n app2
-NAME  	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART          	APP VERSION
-myapp3	app2     	1       	2023-11-05 19:56:50.581772511 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
 vagrant@vm1:/netology_data/HW13-k8s-05-helm$ helm list -A
 NAME  	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART          	APP VERSION
-myapp1	app1     	1       	2023-11-05 19:56:09.477875692 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
-myapp2	app1     	1       	2023-11-05 19:56:24.144880594 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
-myapp3	app2     	1       	2023-11-05 19:56:50.581772511 +0000 UTC	deployed	app-chart-0.1.0	1.16.0 
+myapp1	app1     	1       	2023-11-05 20:28:17.987641383 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
+myapp2	app1     	1       	2023-11-05 20:28:45.899299404 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
+myapp3	app2     	1       	2023-11-05 20:28:55.186030152 +0000 UTC	deployed	app-chart-0.1.0	1.16.0     
+vagrant@vm1:/netology_data/HW13-k8s-05-helm$ kubectl get deploy -A
+NAMESPACE     NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   coredns                     1/1     1            1           40d
+kube-system   metrics-server              1/1     1            1           40d
+kube-system   kubernetes-dashboard        1/1     1            1           40d
+kube-system   dashboard-metrics-scraper   1/1     1            1           40d
+kube-system   calico-kube-controllers     1/1     1            1           40d
+app1          dep-frontend-myapp1         1/1     1            1           92s
+app1          dep-backend-myapp1          1/1     1            1           92s
+app1          dep-frontend-myapp2         1/1     1            1           64s
+app1          dep-backend-myapp2          1/1     1            1           64s
+app2          dep-frontend-myapp3         1/1     1            1           54s
+app2          dep-backend-myapp3          1/1     1            1           54s
+ 
 ```
 
-![img.png](img.png)
-
-![img_1.png](img_1.png)
+![img_3.png](img_3.png)
 
 </details>
 
