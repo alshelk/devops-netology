@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-frontend-{{ .Release.Name }}
+  labels:
+    app: dep-frontend-{{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend-{{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: frontend-{{ .Release.Name }}
+    spec:
+      containers:
+      - name: frontend-{{ .Release.Name }}
+        image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag | default .Chart.AppVersion }}"
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "{{ .Values.volumes.mountPath }}{{ .Values.volumes.subPath }}"
+          subPath: {{ .Values.volumes.subPath }}
+          name: index-html-{{ .Release.Name }}
+      volumes:
+      - name: index-html-{{ .Release.Name }}
+        configMap:
+          name: cm-index-{{ .Release.Name }}

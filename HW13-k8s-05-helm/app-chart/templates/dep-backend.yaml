@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-backend-{{ .Release.Name }}
+  labels:
+    app: dep-backend-{{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: backend-{{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: backend-{{ .Release.Name }}
+    spec:
+      containers:
+      - name: backend-{{ .Release.Name }}
+        image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP

@@ -1,0 +1,47 @@
+# Default values for my-app-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+createReleaseNamespace: ""
+
+image:
+  frontend:
+    repository: nginx
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  backend:
+    repository: wbitt/network-multitool
+    tag: "latest"
+
+
+volumes:
+  mountPath: /usr/share/nginx/html/
+  subPath: index.html
+
+ingress:
+  hostname: web.test
+  rwtarget: /
+  frontPath: /
+  backPath: /api
+  pathType: Prefix
+
+service:
+  port: 80
+  targetPort: 80
+
+data:
+  index: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Simple page html!</title>
+    </head>
+    <body>
+    <h1>Welcom to test page!</h1>
+    <p>text for example</p>
+
+    <p>text 2 for example</p>
+
+    </body>
+    </html>
