@@ -2,6 +2,7 @@ resource "yandex_compute_instance" "mnode" {
   for_each = toset(local.mnode_name)
   name = each.value
   platform_id   = var.mnode_instance.platform_id
+  hostname = each.value
   resources {
     cores         = var.mnode_resources.cores
     memory        = var.mnode_resources.memory
@@ -33,6 +34,7 @@ resource "yandex_compute_instance" "wnode" {
   for_each = toset(local.wnode_name)
   name = each.value
   platform_id   = var.wnode_instance.platform_id
+  hostname = each.value
   resources {
     cores         = var.wnode_resources.cores
     memory        = var.wnode_resources.memory

@@ -41,7 +41,7 @@ variable "mnode_resources" {
   default   = {
     cores         = 2
     memory        = 2
-    disk          = 20
+    disk          = 50
     core_fraction = 20
   }
 }
@@ -50,8 +50,8 @@ variable "wnode_resources" {
   type      = map(number)
   default   = {
     cores         = 2
-    memory        = 1
-    disk          = 20
+    memory        = 2
+    disk          = 50
     core_fraction = 5
   }
 }
