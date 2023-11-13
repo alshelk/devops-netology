@@ -663,13 +663,15 @@ localhost                  : ok=2    changed=1    unreachable=0    failed=0    s
 
 <details>
 <summary>
-Ответ:
+
+**Ответ:**
+
 </summary>
 
-К сожалению не успел реализовать пункт 5 (Измените playbook так, чтобы он умел создавать инфраструктуру под inventory, а после устанавливал весь ваш стек Observability на нужные хосты и настраивал его.)
-
-
+<details>
+<summary>
 module:
+</summary>
 
 ```python
 #!/usr/bin/python
@@ -745,6 +747,7 @@ message:
 
 import os, subprocess, json
 from ansible.module_utils.basic import AnsibleModule
+
 
 def check_dependency(method):
     if method == "cli":
@@ -847,21 +850,20 @@ def run_module():
         supports_check_mode=True
     )
 
-
-    match module.params['step']:
-        case "auth":
+    # for python 3.9
+    if  module.params['step'] == "auth":
             res = check_dependency(module.params['method'])
             auth = yc_auth(module.params['method'], module.params['token'])
             result['message'] = '['+res+', '+auth+']'
             if "Installed" in res:
                 result['changed'] = True
-        case "network":
+    elif module.params['step'] == "network":
             netname = create_vpc_network(module.params['method'], module.params['folder_id'],
                                          module.params['networkname'],  module.params['netdesc'])
             result['message'] = netname
             if not "AlreadyExists" in netname:
                 result['changed'] = True
-        case "subnetwork":
+    elif module.params['step'] == "subnetwork":
             network_id = get_fact(module.params['method'],
                                 "yc vpc network list --folder-id {} --format json".format(module.params['folder_id']),
                                 module.params['networkname'], "id")
@@ -872,7 +874,7 @@ def run_module():
             result['message'] = subnet
             if not "ERROR" in subnet:
                 result['changed'] = True
-        case "vm":
+    elif module.params['step'] == "vm":
             vm = create_vm_instance(module.params['method'], module.params['vm_name'], module.params['zone'],
                                     module.params['subnetname'], module.params['imgfamily'], module.params['disksize'],
                                     module.params['ram'], module.params['cores'], module.params['frac'],
@@ -885,6 +887,44 @@ def run_module():
             result['message'] = vm_ip
             if not "AlreadyExists" in vm:
                 result['changed'] = True
+
+    # match module.params['step']:
+    #     case "auth":
+    #         res = check_dependency(module.params['method'])
+    #         auth = yc_auth(module.params['method'], module.params['token'])
+    #         result['message'] = '['+res+', '+auth+']'
+    #         if "Installed" in res:
+    #             result['changed'] = True
+    #     case "network":
+    #         netname = create_vpc_network(module.params['method'], module.params['folder_id'],
+    #                                      module.params['networkname'],  module.params['netdesc'])
+    #         result['message'] = netname
+    #         if not "AlreadyExists" in netname:
+    #             result['changed'] = True
+    #     case "subnetwork":
+    #         network_id = get_fact(module.params['method'],
+    #                             "yc vpc network list --folder-id {} --format json".format(module.params['folder_id']),
+    #                             module.params['networkname'], "id")
+    #
+    #         subnet = create_vpc_subnet(module.params['method'], module.params['subnetname'], module.params['subdesc'],
+    #                                    network_id, module.params['zone'], module.params['cidr'], module.params['folder_id'])
+    #
+    #         result['message'] = subnet
+    #         if not "ERROR" in subnet:
+    #             result['changed'] = True
+    #     case "vm":
+    #         vm = create_vm_instance(module.params['method'], module.params['vm_name'], module.params['zone'],
+    #                                 module.params['subnetname'], module.params['imgfamily'], module.params['disksize'],
+    #                                 module.params['ram'], module.params['cores'], module.params['frac'],
+    #                                 module.params['pathkey'], module.params['folder_id'])
+    #
+    #         vm_ip = get_fact(module.params['method'],
+    #                               "yc compute instance list --folder-id {} --format json".format(module.params['folder_id']),
+    #                               module.params['vm_name'], "network_interfaces")
+    #
+    #         result['message'] = vm_ip
+    #         if not "AlreadyExists" in vm:
+    #             result['changed'] = True
 
 
     # if the user is working with this module in only check mode we do not
@@ -921,6 +961,713 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+</details>
+
+<details>
+<summary>
+playbook:
+</summary>
+
+
+```yaml
+---
+- name: Create vm in yandex cloud
+  hosts: localhost
+  tasks:
+    - name: yc auth
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "auth"
+        token: "{{ token }}"
+    - name: yc create network
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "network"
+        folder_id: "{{ folder_id }}"
+        networkname: "learning"
+        netdesc: "learning network"
+        zone: "ru-central1-a"
+        cidr: "10.0.1.0/24"
+    - name: yc create subnetwork
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "subnetwork"
+        folder_id: "{{ folder_id }}"
+        networkname: "learning"
+        subnetname: "learning-subnet"
+        subdesc: "learning subnetwork"
+        zone: "ru-central1-a"
+        cidr: "10.0.1.0/24"
+    - name: yc create vm1
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "vm"
+        folder_id: "{{ folder_id }}"
+        vm_name: "clickhouse-01"
+        subnetname: "learning-subnet"
+        imgfamily: "centos-7"
+        disksize: "20GB"
+        ram: "4GB"
+        cores: "2"
+        frac: "20"
+        pathkey: "/home/vagrant/.ssh/id_rsa.pub"
+      register: clickhouse_output
+    - name: Add host to group 'clickhouse'
+      ansible.builtin.add_host:
+        name: clickhouse-01
+        groups: clickhouse
+        ansible_host: '{{ clickhouse_output.message[0].primary_v4_address.one_to_one_nat.address }}'
+        ansible_user: yc-user
+        primary_v4_address: '{{ clickhouse_output.message[0].primary_v4_address.address }}'
+    - name: yc create vm2
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "vm"
+        folder_id: "{{ folder_id }}"
+        vm_name: "lighthouse-01"
+        subnetname: "learning-subnet"
+        imgfamily: "centos-7"
+        disksize: "20GB"
+        ram: "2GB"
+        cores: "2"
+        frac: "20"
+        pathkey: "/home/vagrant/.ssh/id_rsa.pub"
+      register: lighthouse_output
+    - name: Add host to group 'lighthouse'
+      ansible.builtin.add_host:
+        name: lighthouse-01
+        groups: lighthouse
+        ansible_host: '{{ lighthouse_output.message[0].primary_v4_address.one_to_one_nat.address }}'
+        ansible_user: yc-user
+        primary_v4_address: '{{ lighthouse_output.message[0].primary_v4_address.address }}'
+    - name: yc create vm2
+      my_own_collection.yandex_cloud_elk.yc_create_vm:
+        step: "vm"
+        folder_id: "{{ folder_id }}"
+        vm_name: "vector-01"
+        subnetname: "learning-subnet"
+        imgfamily: "centos-7"
+        disksize: "20GB"
+        ram: "2GB"
+        cores: "2"
+        frac: "20"
+        pathkey: "/home/vagrant/.ssh/id_rsa.pub"
+      register: vector_output
+    - name: Add host to group 'vector'
+      ansible.builtin.add_host:
+        name: vector-01
+        groups: vector
+        ansible_host: '{{ vector_output.message[0].primary_v4_address.one_to_one_nat.address }}'
+        ansible_user: yc-user
+        primary_v4_address: '{{ vector_output.message[0].primary_v4_address.address }}'
+
+- name: Install Clickhouse
+  hosts: clickhouse
+  gather_facts: no
+  vars:
+    clickhouse_listen_host_custom:
+      - "{{ hostvars[ 'clickhouse-01' ].primary_v4_address }}"
+    clickhouse_dbs_custom:
+      - { name: logs }
+  pre_tasks:
+    - name: wait until clickhouse server is up
+      wait_for:
+        port: 22
+        host: "{{ hostvars[ 'clickhouse-01' ].ansible_host }}"
+        search_regex: OpenSSH
+        timeout: 600
+        delay: 10
+      delegate_to: localhost
+    - name: Gather facts for first time
+      ansible.builtin.setup:
+  roles:
+    - role: clickhouse
+  post_tasks:
+    - name: Create table
+      ansible.builtin.command: "clickhouse-client -q 'CREATE TABLE IF NOT EXISTS logs.local_log
+        (file String, hostname String, message String, timestamp DateTime) Engine=Log;'"
+      register: create_table
+      failed_when: create_table.rc != 0 and create_table.rc !=57
+      changed_when: create_table.rc == 0
+      when: not ansible_check_mode
+
+- name: Install Vector manual
+  hosts: vector
+  gather_facts: no
+  vars:
+    ip_clickhouse: "{{ hostvars[ 'clickhouse-01' ].primary_v4_address }}"
+    vector_config:
+      data_dir: /var/lib/vector
+      sources:
+        sample_file:
+          type: file
+          read_from: beginning
+          ignore_older_secs: 600
+          include:
+            - /var/log/**/*.log
+        vector_log:
+          type: internal_logs
+      sinks:
+        to_clickhouse:
+          type: clickhouse
+          inputs:
+            - sample_file
+          endpoint: http://{{ ip_clickhouse }}:{{ port_clickhouse }}
+          database: logs
+          table: local_log
+          skip_unknown_fields: true
+          compression: gzip
+          healthcheck:
+            enabled: false
+  collections:
+    - my_own_collection.yandex_cloud_elk
+  pre_tasks:
+    - name: wait until vector server is up
+      wait_for:
+        port: 22
+        host: "{{ hostvars[ 'vector-01' ].ansible_host }}"
+        timeout: 600
+        delay: 10
+      delegate_to: localhost
+    - name: Gather facts for first time
+      ansible.builtin.setup:
+  tasks:
+    - name: import role vector
+      ansible.builtin.import_role:
+        name: vector-role
+
+- name: Install lighthouse
+  hosts: lighthouse
+  gather_facts: no
+  collections:
+    - my_own_collection.yandex_cloud_elk
+  pre_tasks:
+    - name: wait until lighthouse server is up
+      wait_for:
+        port: 22
+        host: "{{ hostvars[ 'lighthouse-01' ].ansible_host }}"
+        timeout: 600
+        delay: 10
+      delegate_to: localhost
+    - name: Gather facts for first time
+      ansible.builtin.setup:
+    - name: install git
+      ansible.builtin.yum:
+        name: git
+        state: latest
+        update_cache: yes
+      become: true
+  tasks:
+    - name: import role nginx
+      ansible.builtin.import_role:
+        name: nginx-role
+    - name: import role lighthouse
+      ansible.builtin.import_role:
+        name: lighthouse-role
+```
+
+</details>
+
+<details>
+<summary>
+Создание инфраструктуры и установка стека:
+</summary>
+
+```bash
+vagrant@vm1:/netology_data/HW08-ansible-06-module/my_own_collection/yandex_cloud_elk/arhive$ ansible-playbook site2.yml --ask-vault-pass
+Vault password: 
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
+
+PLAY [Create vm in yandex cloud] *************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc auth] *******************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc create network] *********************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create subnetwork] ******************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create vm1] *************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Add host to group 'clickhouse'] ********************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create vm2] *************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Add host to group 'lighthouse'] ********************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create vm2] *************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [Add host to group 'vector'] ************************************************************************************************************************************************************
+changed: [localhost]
+
+PLAY [Install Clickhouse] ********************************************************************************************************************************************************************
+
+TASK [wait until clickhouse server is up] ****************************************************************************************************************************************************
+ok: [clickhouse-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+The authenticity of host '158.160.39.87 (158.160.39.87)' can't be established.
+ECDSA key fingerprint is SHA256:r+ct7jkAgSI9R8ovqCqd9i3pLcVy1pytgzGwdhssPbc.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+ok: [clickhouse-01]
+
+TASK [clickhouse : Include OS Family Specific Variables] *************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/precheck.yml for clickhouse-01
+
+TASK [clickhouse : Requirements check | Checking sse4_2 support] *****************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Requirements check | Not supported distribution && release] ***************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/params.yml for clickhouse-01
+
+TASK [clickhouse : Set clickhouse_service_enable] ********************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Set clickhouse_service_ensure] ********************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/install/yum.yml for clickhouse-01
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse repo installed] ************************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse package installed (latest)] ************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse package installed (version latest)] ****************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/sys.yml for clickhouse-01
+
+TASK [clickhouse : Check clickhouse config, data and logs] ***********************************************************************************************************************************
+ok: [clickhouse-01] => (item=/var/log/clickhouse-server)
+changed: [clickhouse-01] => (item=/etc/clickhouse-server)
+changed: [clickhouse-01] => (item=/var/lib/clickhouse/tmp/)
+changed: [clickhouse-01] => (item=/var/lib/clickhouse/)
+
+TASK [clickhouse : Config | Create config.d folder] ******************************************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Config | Create users.d folder] *******************************************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate system config] ******************************************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate users config] *******************************************************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate remote_servers config] **********************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate macros config] ******************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate zookeeper servers config] *******************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Fix interserver_http_port and intersever_https_port collision] ***************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Notify Handlers Now] ******************************************************************************************************************************************************
+
+RUNNING HANDLER [clickhouse : Restart Clickhouse Service] ************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/service.yml for clickhouse-01
+
+TASK [clickhouse : Ensure clickhouse-server.service is enabled: True and state: restarted] ***************************************************************************************************
+changed: [clickhouse-01]
+
+TASK [clickhouse : Wait for Clickhouse Server to Become Ready] *******************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/db.yml for clickhouse-01
+
+TASK [clickhouse : Set ClickHose Connection String] ******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Gather list of existing databases] ****************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Delete database config] ******************************************************************************************************************************************
+skipping: [clickhouse-01] => (item={'name': 'logs'}) 
+
+TASK [clickhouse : Config | Create database config] ******************************************************************************************************************************************
+changed: [clickhouse-01] => (item={'name': 'logs'})
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/dict.yml for clickhouse-01
+
+TASK [clickhouse : Config | Generate dictionary config] **************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [Create table] **************************************************************************************************************************************************************************
+changed: [clickhouse-01]
+
+PLAY [Install Vector manual] *****************************************************************************************************************************************************************
+
+TASK [wait until vector server is up] ********************************************************************************************************************************************************
+ok: [vector-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+The authenticity of host '158.160.112.146 (158.160.112.146)' can't be established.
+ECDSA key fingerprint is SHA256:nG9n9UdaFgI2t2cG/ffM+T2QAqmYUDVKua02oITsNho.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create temp directory] ****************************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Get vector distrib] *******************************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create root directory] ****************************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Extract vector] ***********************************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Copy vector to bin with owner and permissions] ****************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Configure vector.service from template] ***********************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : create config dir for vector] *********************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Configure vector from template] *******************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create data directory] ****************************************************************************************************************
+changed: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Flush handlers] ***********************************************************************************************************************
+
+RUNNING HANDLER [my_own_collection.yandex_cloud_elk.vector-role : restarted vector service] **************************************************************************************************
+changed: [vector-01]
+
+PLAY [Install lighthouse] ********************************************************************************************************************************************************************
+
+TASK [wait until lighthouse server is up] ****************************************************************************************************************************************************
+ok: [lighthouse-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+The authenticity of host '130.193.48.24 (130.193.48.24)' can't be established.
+ECDSA key fingerprint is SHA256:QNhSewCqVrm/u2wPd0/MjWIE+S2oexM/qrnG6rCRSK0.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+ok: [lighthouse-01]
+
+TASK [install git] ***************************************************************************************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : add repo nginx] ************************************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : install nginx] *************************************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : Configure nginx from template] *********************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : restarted nginx service] ***************************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : Flush handlers] ************************************************************************************************************************
+
+RUNNING HANDLER [my_own_collection.yandex_cloud_elk.nginx-role : restarted nginx service] ****************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Get lighthouse from git] **********************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Configure nginx for lighthouse] ***************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Flush handlers] *******************************************************************************************************************
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+clickhouse-01              : ok=27   changed=10   unreachable=0    failed=0    skipped=9    rescued=0    ignored=0   
+lighthouse-01              : ok=10   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=10   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vector-01                  : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
+
+</details>
+
+<details>
+<summary>
+Идемпотентность:
+</summary>
+
+т.к. inventory не задан, ip адреса могут изменяться, то он формируется каждый раз при запуске playbook
+
+```bash
+vagrant@vm1:/netology_data/HW08-ansible-06-module/my_own_collection/yandex_cloud_elk/arhive$ ansible-playbook site2.yml --ask-vault-pass
+Vault password: 
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
+
+PLAY [Create vm in yandex cloud] *************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc auth] *******************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc create network] *********************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc create subnetwork] ******************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [yc create vm1] *************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [Add host to group 'clickhouse'] ********************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create vm2] *************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [Add host to group 'lighthouse'] ********************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [yc create vm2] *************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [Add host to group 'vector'] ************************************************************************************************************************************************************
+changed: [localhost]
+
+PLAY [Install Clickhouse] ********************************************************************************************************************************************************************
+
+TASK [wait until clickhouse server is up] ****************************************************************************************************************************************************
+ok: [clickhouse-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Include OS Family Specific Variables] *************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/precheck.yml for clickhouse-01
+
+TASK [clickhouse : Requirements check | Checking sse4_2 support] *****************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Requirements check | Not supported distribution && release] ***************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/params.yml for clickhouse-01
+
+TASK [clickhouse : Set clickhouse_service_enable] ********************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Set clickhouse_service_ensure] ********************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/install/yum.yml for clickhouse-01
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse repo installed] ************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse package installed (latest)] ************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Install by YUM | Ensure clickhouse package installed (version latest)] ****************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/sys.yml for clickhouse-01
+
+TASK [clickhouse : Check clickhouse config, data and logs] ***********************************************************************************************************************************
+ok: [clickhouse-01] => (item=/var/log/clickhouse-server)
+ok: [clickhouse-01] => (item=/etc/clickhouse-server)
+ok: [clickhouse-01] => (item=/var/lib/clickhouse/tmp/)
+ok: [clickhouse-01] => (item=/var/lib/clickhouse/)
+
+TASK [clickhouse : Config | Create config.d folder] ******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Create users.d folder] *******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate system config] ******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate users config] *******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate remote_servers config] **********************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate macros config] ******************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Generate zookeeper servers config] *******************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Config | Fix interserver_http_port and intersever_https_port collision] ***************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : Notify Handlers Now] ******************************************************************************************************************************************************
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/service.yml for clickhouse-01
+
+TASK [clickhouse : Ensure clickhouse-server.service is enabled: True and state: started] *****************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Wait for Clickhouse Server to Become Ready] *******************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/db.yml for clickhouse-01
+
+TASK [clickhouse : Set ClickHose Connection String] ******************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Gather list of existing databases] ****************************************************************************************************************************************
+ok: [clickhouse-01]
+
+TASK [clickhouse : Config | Delete database config] ******************************************************************************************************************************************
+skipping: [clickhouse-01] => (item={'name': 'logs'}) 
+
+TASK [clickhouse : Config | Create database config] ******************************************************************************************************************************************
+skipping: [clickhouse-01] => (item={'name': 'logs'}) 
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+included: /home/vagrant/.ansible/roles/clickhouse/tasks/configure/dict.yml for clickhouse-01
+
+TASK [clickhouse : Config | Generate dictionary config] **************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [clickhouse : include_tasks] ************************************************************************************************************************************************************
+skipping: [clickhouse-01]
+
+TASK [Create table] **************************************************************************************************************************************************************************
+changed: [clickhouse-01]
+
+PLAY [Install Vector manual] *****************************************************************************************************************************************************************
+
+TASK [wait until vector server is up] ********************************************************************************************************************************************************
+ok: [vector-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create temp directory] ****************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Get vector distrib] *******************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create root directory] ****************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Extract vector] ***********************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Copy vector to bin with owner and permissions] ****************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Configure vector.service from template] ***********************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : create config dir for vector] *********************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Configure vector from template] *******************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Create data directory] ****************************************************************************************************************
+ok: [vector-01]
+
+TASK [my_own_collection.yandex_cloud_elk.vector-role : Flush handlers] ***********************************************************************************************************************
+
+PLAY [Install lighthouse] ********************************************************************************************************************************************************************
+
+TASK [wait until lighthouse server is up] ****************************************************************************************************************************************************
+ok: [lighthouse-01 -> localhost]
+
+TASK [Gather facts for first time] ***********************************************************************************************************************************************************
+ok: [lighthouse-01]
+
+TASK [install git] ***************************************************************************************************************************************************************************
+ok: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : add repo nginx] ************************************************************************************************************************
+ok: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : install nginx] *************************************************************************************************************************
+ok: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : Configure nginx from template] *********************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : restarted nginx service] ***************************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.nginx-role : Flush handlers] ************************************************************************************************************************
+
+RUNNING HANDLER [my_own_collection.yandex_cloud_elk.nginx-role : restarted nginx service] ****************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Get lighthouse from git] **********************************************************************************************************
+ok: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Configure nginx for lighthouse] ***************************************************************************************************
+changed: [lighthouse-01]
+
+TASK [my_own_collection.yandex_cloud_elk.lighthouse-role : Flush handlers] *******************************************************************************************************************
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+clickhouse-01              : ok=25   changed=1    unreachable=0    failed=0    skipped=10   rescued=0    ignored=0   
+lighthouse-01              : ok=10   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+localhost                  : ok=10   changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+vector-01                  : ok=11   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
+</details>
+
+
+
+<details>
+<summary>
+Коллекция:
+</summary>
+
+Коллекция содержит lighthouse-role, vector-role, nginx-role два модуля: my_own_module и yc_create_vm. И в каталоге
+Arhive playbook sute2.yml который демонстрирует поднятие виртуальных машин и установку соответсвующего стека.
+
+[my_own_collection](https://github.com/alshelk/my_own_collection/tree/v1.1.0)
+
+</details>
+
 
 </details>
 
