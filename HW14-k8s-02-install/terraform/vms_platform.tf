@@ -31,7 +31,7 @@ variable "wnode_instance" {
     name              = "work-node",
     platform_id       = "standard-v1",
     scheduling_policy = { preemptible = true },
-    network_interface = { nat = false }
+    network_interface = { nat = true }
   }
   description = "resource instance variables"
 }

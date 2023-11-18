@@ -33,7 +33,7 @@ variable "vpc_name" {
 
 variable "k8s_type_install" {
   type        = list(string)
-  default     = ["kubeadm", "kubespray"]
+  default     = ["kubeadm"]
   description = "k8s type install"
 }
 
