@@ -14,7 +14,7 @@ locals {
   ])
 }
 
-#locals {
-#  servers_list = concat([ for i in yandex_compute_instance.mnode : i], [ for i in yandex_compute_instance.wnode : i])
-#}
+locals {
+ servers_list = concat([ for i in yandex_compute_instance.mnode : i], [ for i in yandex_compute_instance.wnode : i])
+}
 
