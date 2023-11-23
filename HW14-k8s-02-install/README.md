@@ -38,6 +38,8 @@ Kubespray
 
 Подготовка ВМ:
 
+[terraform](terraform)
+
 ```bash
 vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ yc compute instance list
 +----------------------+-------------------------+---------------+---------+-----------------+-------------+
@@ -535,7 +537,304 @@ container_manager: containerd
 kubeadm
 </summary>
 
+Подготавливаем vm для установки k8s
 
+```bash
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ yc compute instance list
++----------------------+-----------------------+---------------+---------+-----------------+-------------+
+|          ID          |         NAME          |    ZONE ID    | STATUS  |   EXTERNAL IP   | INTERNAL IP |
++----------------------+-----------------------+---------------+---------+-----------------+-------------+
+| fhm3diot7i7e96e10upg | worker-node-kubeadm-4 | ru-central1-a | RUNNING | 158.160.125.171 | 10.0.1.31   |
+| fhmh72q4j6faj4fvmesm | worker-node-kubeadm-3 | ru-central1-a | RUNNING | 158.160.108.58  | 10.0.1.11   |
+| fhmi45v20hdpd9vcc10a | master-node-kubeadm-1 | ru-central1-a | RUNNING | 51.250.83.228   | 10.0.1.13   |
+| fhmifbnc1qoq5jjqpio9 | worker-node-kubeadm-1 | ru-central1-a | RUNNING | 158.160.123.174 | 10.0.1.12   |
+| fhmnm6akrvasjtvp9rll | worker-node-kubeadm-2 | ru-central1-a | RUNNING | 158.160.61.52   | 10.0.1.29   |
++----------------------+-----------------------+---------------+---------+-----------------+-------------+
+
+```
+
+```bash
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+sudo mkdir -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl containerd
+sudo apt-mark hold kubelet kubeadm kubectl
+
+sudo modprobe  br_netfilter
+sudo /bin/su -c "echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
+sudo /bin/su -c "echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.conf"
+sudo /bin/su -c "echo 'net.bridge.bridge-nf-call-arptables=1' >> /etc/sysctl.conf"
+sudo /bin/su -c "echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.conf"
+sudo sysctl -p /etc/sysctl.conf
+```
+
+Инициируем kubeadm 
+
+```bash
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ ssh ubuntu@51.250.83.228
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-166-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+New release '22.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Thu Nov 23 11:11:58 2023 from 213.208.164.178
+ubuntu@master-node-kubeadm-1:~$ sudo kubeadm init --apiserver-advertise-address=10.0.1.13 --pod-network-cidr 10.244.0.0/16 --apiserver-cert-extra-sans=51.250.83.228
+[init] Using Kubernetes version: v1.28.4
+[preflight] Running pre-flight checks
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+W1123 11:14:51.764864    2686 checks.go:835] detected that the sandbox image "registry.k8s.io/pause:3.8" of the container runtime is inconsistent with that used by kubeadm. It is recommended that using "registry.k8s.io/pause:3.9" as the CRI sandbox image.
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local master-node-kubeadm-1] and IPs [10.96.0.1 10.0.1.13 51.250.83.228]
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [localhost master-node-kubeadm-1] and IPs [10.0.1.13 127.0.0.1 ::1]
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [localhost master-node-kubeadm-1] and IPs [10.0.1.13 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "sa" key and public key
+[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+[kubeconfig] Writing "admin.conf" kubeconfig file
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+[control-plane] Using manifest folder "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Starting the kubelet
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
+[apiclient] All control plane components are healthy after 17.504521 seconds
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node master-node-kubeadm-1 as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node master-node-kubeadm-1 as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+[bootstrap-token] Using token: zwpwzz.1b9a6fly3jl9fhvw
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.0.1.13:6443 --token zwpwzz.1b9a6fly3jl9fhvw \
+	--discovery-token-ca-cert-hash sha256:98efe10b6ca209ca3f64f1197dfb0d70db1b2513280f201ee8455342328aae97 
+
+ubuntu@master-node-kubeadm-1:~$ mkdir -p $HOME/.kube
+ubuntu@master-node-kubeadm-1:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+ubuntu@master-node-kubeadm-1:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+ubuntu@master-node-kubeadm-1:~$ kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+namespace/kube-flannel created
+serviceaccount/flannel created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created
+
+```
+
+Присоединяем остальные ноды:
+
+```bash
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ ssh ubuntu@158.160.123.174
+The authenticity of host '158.160.123.174 (158.160.123.174)' can't be established.
+ECDSA key fingerprint is SHA256:uQsEPrMNlJiA2IeGUPIrF8ThTcvnBLGJOGPalBLd9sA.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '158.160.123.174' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-166-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+New release '22.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Thu Nov 23 09:15:54 2023 from 213.208.164.178
+
+ubuntu@worker-node-kubeadm-1:~$ sudo kubeadm join 10.0.1.13:6443 --token zwpwzz.1b9a6fly3jl9fhvw --discovery-token-ca-cert-hash sha256:98efe10b6ca209ca3f64f1197dfb0d70db1b2513280f201ee8455342328aae97
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+ubuntu@worker-node-kubeadm-1:~$ exit
+logout
+Connection to 158.160.123.174 closed.
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ ssh ubuntu@158.160.61.52
+The authenticity of host '158.160.61.52 (158.160.61.52)' can't be established.
+ECDSA key fingerprint is SHA256:R3dFsh65l8X+UY/P7cvwZ03OSfqdVnc1agJhkY7XTAc.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '158.160.61.52' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-166-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+New release '22.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Thu Nov 23 09:15:54 2023 from 213.208.164.178
+ubuntu@worker-node-kubeadm-2:~$ sudo kubeadm join 10.0.1.13:6443 --token zwpwzz.1b9a6fly3jl9fhvw --discovery-token-ca-cert-hash sha256:98efe10b6ca209ca3f64f1197dfb0d70db1b2513280f201ee8455342328aae97
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+ubuntu@worker-node-kubeadm-2:~$ exit
+logout
+Connection to 158.160.61.52 closed.
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ ssh ubuntu@158.160.108.58
+The authenticity of host '158.160.108.58 (158.160.108.58)' can't be established.
+ECDSA key fingerprint is SHA256:rV8g6aTPHaKKYAEJgDK6W4XmT+GQygQjc7kg6Komthw.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '158.160.108.58' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-166-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+New release '22.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Thu Nov 23 09:16:10 2023 from 213.208.164.178
+ubuntu@worker-node-kubeadm-3:~$ sudo kubeadm join 10.0.1.13:6443 --token zwpwzz.1b9a6fly3jl9fhvw --discovery-token-ca-cert-hash sha256:98efe10b6ca209ca3f64f1197dfb0d70db1b2513280f201ee8455342328aae97
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+ubuntu@worker-node-kubeadm-3:~$ exit
+logout
+Connection to 158.160.108.58 closed.
+vagrant@vm1:/netology_data/HW14-k8s-02-install/terraform$ ssh ubuntu@158.160.125.171
+The authenticity of host '158.160.125.171 (158.160.125.171)' can't be established.
+ECDSA key fingerprint is SHA256:r4lDtMIrCzaM03KfVhJ5lxrtMIoFoAs6Zr/dwOR73ac.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '158.160.125.171' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-166-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+New release '22.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Thu Nov 23 09:16:33 2023 from 213.208.164.178
+ubuntu@worker-node-kubeadm-4:~$ sudo kubeadm join 10.0.1.13:6443 --token zwpwzz.1b9a6fly3jl9fhvw --discovery-token-ca-cert-hash sha256:98efe10b6ca209ca3f64f1197dfb0d70db1b2513280f201ee8455342328aae97
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
+ubuntu@worker-node-kubeadm-4:~$
+```
+
+Смотрим ноды:
+
+```bash
+ubuntu@master-node-kubeadm-1:~$ kubectl get nodes
+NAME                    STATUS   ROLES           AGE   VERSION
+master-node-kubeadm-1   Ready    control-plane   23m   v1.28.4
+worker-node-kubeadm-1   Ready    <none>          16m   v1.28.4
+worker-node-kubeadm-2   Ready    <none>          15m   v1.28.4
+worker-node-kubeadm-3   Ready    <none>          15m   v1.28.4
+worker-node-kubeadm-4   Ready    <none>          15m   v1.28.4
+
+ubuntu@master-node-kubeadm-1:~$ kubectl get pod -A
+NAMESPACE      NAME                                            READY   STATUS    RESTARTS   AGE
+kube-flannel   kube-flannel-ds-lzdqh                           1/1     Running   0          2m3s
+kube-flannel   kube-flannel-ds-n9h57                           1/1     Running   0          2m3s
+kube-flannel   kube-flannel-ds-nhs78                           1/1     Running   0          2m3s
+kube-flannel   kube-flannel-ds-s8xlr                           1/1     Running   0          2m3s
+kube-flannel   kube-flannel-ds-trfvn                           1/1     Running   0          2m3s
+kube-system    coredns-5dd5756b68-4zzmd                        1/1     Running   0          24m
+kube-system    coredns-5dd5756b68-rqxq6                        1/1     Running   0          24m
+kube-system    etcd-master-node-kubeadm-1                      1/1     Running   0          24m
+kube-system    kube-apiserver-master-node-kubeadm-1            1/1     Running   0          24m
+kube-system    kube-controller-manager-master-node-kubeadm-1   1/1     Running   0          24m
+kube-system    kube-proxy-7b44j                                1/1     Running   0          16m
+kube-system    kube-proxy-kxw2n                                1/1     Running   0          17m
+kube-system    kube-proxy-rhqfj                                1/1     Running   0          16m
+kube-system    kube-proxy-trskx                                1/1     Running   0          16m
+kube-system    kube-proxy-vwbbw                                1/1     Running   0          24m
+kube-system    kube-scheduler-master-node-kubeadm-1            1/1     Running   0          24m
+
+```
 
 </details>
 
