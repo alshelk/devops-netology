@@ -605,9 +605,9 @@ $ sudo docker push cr.yandex/crplm04uob96qchf7ht4/my_app:0.1.0
 
 6. Ссылка на тестовое приложение и веб интерфейс Grafana с данными доступа.
 
-[тестовое приложение](http://158.160.152.156/)
+[тестовое приложение](http://158.160.148.0)
 
-[Grafana](http://158.160.149.21)
+[Grafana](http://158.160.155.19)
 
 login admin
 pass netology
