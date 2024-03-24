@@ -326,7 +326,7 @@ resource "null_resource" "cluster" {
 }
 ```
 
-[invent_ansible.tf](terraform%2Finvent_ansible.tf)
+[invent_ansible.tf](https://github.com/alshelk/terr-inf/blob/8d24cd6b689ac6392e4ce0876410a231f90316ac/invent_ansible.tf)
 
 ```yaml
 resource "local_file" "hosts_cfg" {
@@ -346,7 +346,7 @@ resource "local_file" "hosts_cfg" {
 
 ```
 
-[hosts.tftpl](terraform%2Fhosts.tftpl)
+[hosts.tftpl](https://github.com/alshelk/terr-inf/blob/8d24cd6b689ac6392e4ce0876410a231f90316ac/templates/hosts.tftpl)
 
 ```yaml
 ---
@@ -392,7 +392,7 @@ all:
 
 ```
 
-[locals.tf](terraform%2Flocals.tf)
+[locals.tf](https://github.com/alshelk/terr-inf/blob/8d24cd6b689ac6392e4ce0876410a231f90316ac/locals.tf)
 
 ```yaml
 resource "null_resource" "cluster" {
